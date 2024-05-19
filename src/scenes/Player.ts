@@ -9,7 +9,7 @@ export default class Player {
    * @param {*} x
    * @param {*} y
    */
-  constructor(scene:Phaser.Scene, x:number, y:number, wallLayer:Phaser.Tilemaps.TilemapLayer) {
+  constructor(scene: Phaser.Scene, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
     // Create the physics-based sprite that we will move around and animate
@@ -18,14 +18,14 @@ export default class Player {
       .setDrag(500, 500)
       .setMaxVelocity(300, 10000);
     const width = this.sprite.width;
-    const newWidth= width*0.35;
-    const diff = width-newWidth;
-    this.sprite.setCircle(newWidth,diff/4+0.5,diff/4+0.5)
+    const newWidth = width * 0.35;
+    const diff = width - newWidth;
+    this.sprite.setCircle(newWidth, diff / 4 + 0.5, diff / 4 + 0.5)
 
     // Track the arrow keys & WASD
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
       Phaser.Input.Keyboard.KeyCodes;
-   
+
     this.keys = scene.input.keyboard ? scene.input.keyboard.addKeys({
       left: LEFT,
       right: RIGHT,
@@ -37,9 +37,9 @@ export default class Player {
       space: SPACE
     }) : {};
   }
-  
-  update(time:number, delta:number) {
-    
+
+  update(time: number, delta: number) {
+
     const sprite = this.sprite;
 
     const acceleration = 60;
@@ -67,9 +67,17 @@ export default class Player {
     if (len != 0) {
       sprite.setVelocityX((moveX / len) * acceleration);
       sprite.setVelocityY((moveY / len) * acceleration);
-      
+
       // Calculate the target angle
-      const targetAngle = Math.atan2(moveY, moveX);
+      let targetAngle = Math.atan2(moveY, moveX);
+
+      // Adjust the target angle to ensure shortest rotation
+      const angleDiff = targetAngle - sprite.rotation;
+      if (angleDiff > Math.PI) {
+        targetAngle -= 2 * Math.PI;
+      } else if (angleDiff < -Math.PI) {
+        targetAngle += 2 * Math.PI;
+      }
 
       // Lerp the sprite's rotation towards the target angle
       const t = delta / 100; // Adjust the speed of rotation
