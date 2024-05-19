@@ -36,7 +36,19 @@ export class Game extends Scene {
     const mapFloor = map.createLayer("floor", tiles) //.setPipeline('Light2D');
     // @ts-ignore
     const mapWalls = map.createLayer("walls", tiles)//.setPipeline('Light2D');
+    // @ts-ignore
+    mapWalls.setCollisionByProperty({ collides: true });
+    this.camera.setZoom(4)
+    this.camera.setScroll(-300, -250)
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
+    var graphics = this.add.graphics({
+      fillStyle: { color: 0xff0000 } // red color
+    });
+    var circle = new Phaser.Geom.Circle(this.camera.scrollX + Number(this.game.config.width) / 2, this.camera.scrollY + Number(this.game.config.height) / 2, 5); // x=100, y=200, radius=50
+
+    graphics.fillCircleShape(circle);
     // this.groundLayer = map.createLayer("Ground", tiles).setPipeline("Light2D");
     // // this.groundLayer.postFX.addGradient(0x000000, 0x89739C, 0.88);
     // this.foreGround = map
