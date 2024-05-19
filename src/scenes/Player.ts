@@ -5,6 +5,7 @@ export default class Player {
   keys: object;
   targetAngle: number;
   public offset: number;
+  public nextAngle: number;
   /**
    *
    * @param {Phaser.Scene} scene
@@ -18,7 +19,7 @@ export default class Player {
     this.sprite = scene.physics.add
       .sprite(x, y, "player")
       .setDrag(500, 500)
-      .setOrigin(0.5,0.5)
+      .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
     const width = this.sprite.width;
     const newWidth = width * 0.35;
@@ -46,7 +47,7 @@ export default class Player {
 
     const sprite = this.sprite;
 
-    const acceleration = 60;
+    const acceleration = 60 * 2;
     let moveX = 0;
     let moveY = 0;
 
@@ -87,6 +88,7 @@ export default class Player {
       const t = delta / 100; // Adjust the speed of rotation
       const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
       sprite.setRotation(nextAngle);
+      this.nextAngle = nextAngle;
     } else {
       sprite.setRotation(this.targetAngle);
       sprite.setVelocityX(0);

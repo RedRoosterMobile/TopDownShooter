@@ -4,6 +4,8 @@ import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
 
 const PLAYER_SPAWN = "Spawn Point";
+const PLAYER_INNER_CONE = 0.5 * Math.PI;
+const PLAYER_CONSTANT_LIGHT_CIRCLE = 5;
 
 export class Game extends Scene {
   raycasterPlugin: PhaserRaycaster
@@ -11,6 +13,7 @@ export class Game extends Scene {
   background: Phaser.GameObjects.Image;
   playerGraphics: Phaser.GameObjects.Graphics;
   player: Player;
+  light: Phaser.GameObjects.Light;
 
   mapWalls: Phaser.Tilemaps.TilemapLayer | null;
 
@@ -53,9 +56,9 @@ export class Game extends Scene {
       "tiles"
     );
     // @ts-ignore
-    const mapFloor = this.map.createLayer("floor", tiles) //.setPipeline('Light2D');
+    const mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
     // @ts-ignore
-    this.mapWalls = this.map.createLayer("walls", tiles)//.setPipeline('Light2D');
+    this.mapWalls = this.map.createLayer("walls", tiles).setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls.setCollisionByProperty({ collides: true });
     this.camera.setZoom(4)
@@ -79,24 +82,36 @@ export class Game extends Scene {
     this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
 
     this.createRaycast();
+    this.createLights();
+  }
+  createLights() {
+    this.lights.enable();
+
+    //this.lights.setAmbientColor(0x808080);
+    this.lights.setAmbientColor(0xff0000);
+
+    this.light = this.lights.addLight(0, 0, 400);
+    this.light.setIntensity(2);
+    // @ts-ignore
+    window.ll = this.light;
   }
 
   createRaycast() {
     //advanced debug mode options
 
     this.raycaster = this.raycasterPlugin.createRaycaster({
-      // debug: {
-      //   enabled: false, //enable debug mode
-      //   maps: true, //enable maps debug
-      //   rays: true, //enable rays debug
-      //   graphics: {
-      //     ray: 0x00ff00, //debug ray color; set false to disable
-      //     rayPoint: 0xff00ff, //debug ray point color; set false to disable
-      //     mapPoint: 0x00ffff, //debug map point color; set false to disable
-      //     mapSegment: 0x0000ff, //debug map segment color; set false to disable
-      //     mapBoundingBox: 0xff0000 //debug map bounding box color; set false to disable
-      //   }
-      // }
+      debug: {
+        enabled: true, //enable debug mode
+        maps: true, //enable maps debug
+        rays: true, //enable rays debug
+        graphics: {
+          ray: 0x00ff00, //debug ray color; set false to disable
+          rayPoint: 0xff00ff, //debug ray point color; set false to disable
+          mapPoint: 0x00ffff, //debug map point color; set false to disable
+          mapSegment: 0x0000ff, //debug map segment color; set false to disable
+          mapBoundingBox: 0xff0000 //debug map bounding box color; set false to disable
+        }
+      }
     })
 
     this.ray = this.raycaster.createRay({
@@ -112,19 +127,26 @@ export class Game extends Scene {
     // window.gl = this.mapWalls.setCollisionByProperty({ collides: true });
     //this.groundLayer.tileset
 
+    // 600 tiles???
     let array = Array.from({ length: 600 }, (_, i) => i + 1);
 
     this.raycaster.mapGameObjects(this.mapWalls, false, {
-      // whut??
-      //collisionTiles: [0, 1, 2, 3, 4, 5] //array of tiles types which can collide with ray
-      //collisionTiles:window.gl.layer.collideIndexes
       collisionTiles: array
     });
-    this.ray.setOrigin(this.player.sprite.x + this.player.offset, this.player.sprite.y + this.player.offset);
+    this.ray.setOrigin(this.player.sprite.x, this.player.sprite.y);
     // TODO:
     // https://codepen.io/wiserim/pen/pojNmRK
-    //cast ray in all directions
-    this.intersections = this.ray.castCircle();
+    //set ray's cone angle (in radians)
+    // cone example
+    // https://codepen.io/wiserim/pen/KKpoVKb?editors=1010
+
+    // check draw() function!!!!
+    this.ray.setCone(PLAYER_INNER_CONE);
+
+
+
+    //cast rays in a cone
+    this.intersections = this.ray.castCone();
 
     this.graphics = this.add.graphics({
       lineStyle: { width: 1, color: 0x00ff00 },
@@ -137,20 +159,22 @@ export class Game extends Scene {
     //topTilemapLayer.setDepth(2);
     this.graphics.setDepth(3);
 
-    //draw rays
-    this.drawIntersections();
+
     // //enable auto slicing field of view
     this.ray.autoSlice = true;
     // //enable arcade physics body
     this.ray.enablePhysics();
     // //set collision (field of view) range
-    this.ray.setCollisionRange(16*3);
+    this.ray.setCollisionRange(16 * 3);
     // //cast ray
 
 
     //get all game objects in field of view (which bodies overlap ray's field of view)
     let visibleObjects = this.ray.overlap();
     console.log(visibleObjects);
+
+    //draw rays
+    this.drawIntersections();
     // //get objects in field of view
     // visibleObjects = this.ray.overlap(group.getChildren());
 
@@ -176,43 +200,8 @@ export class Game extends Scene {
     this.maskGraphics.clear();
     //draw fov mask
     this.maskGraphics.fillPoints(this.intersections);
-
-    /*
-    graphics.fillStyle(0xffffff, 0.3);
-    graphics.fillPoints(intersections);
-    */
-
-    //clear ray visualisation
-    // this.graphics.clear();
-    // //draw rays
-    // this.graphics.lineStyle(1, 0x00ff00);
-    // for (let intersection of this.intersections) {
-    //   this.graphics.strokeLineShape({
-    //     x1: this.ray.origin.x,
-    //     y1: this.ray.origin.y,
-    //     x2: intersection.x,
-    //     y2: intersection.y
-    //   });
-    // }
-    // /*
-    // let raycasterMap = tilemapLayer.data.get('raycasterMap');
-    // //draw tilemap's segments
-    // graphics.lineStyle(1, 0xff0000);
-    // let segments = raycasterMap.getSegments(ray);
-    // for(let segment of segments) {
-    //   graphics.strokeLineShape(segment);
-    // }
-    // */
-    // this.graphics.fillStyle(0xff00ff);
-    // /*
-    // //draw tilemap's points
-    // let points = raycasterMap.getPoints(ray);
-    // for(let point of points) {
-    //   graphics.fillPoint(point.x, point.y, 3);
-    // }
-    // */
-    // //draw ray origin
-    // this.graphics.fillPoint(this.ray.origin.x, this.ray.origin.y, 3);
+    this.maskGraphics.fillCircle(this.player.sprite.x, this.player.sprite.y, PLAYER_CONSTANT_LIGHT_CIRCLE)
+    // this.maskGraphics.fillGradientStyle()
   }
 
   //create field of view
@@ -225,7 +214,7 @@ export class Game extends Scene {
     this.mask.setInvertAlpha();
     this.fow = this.add
       .graphics({ fillStyle: { color: 0x000000, alpha: 0.8 } })
-      .setDepth(29);
+      .setDepth(2);
     this.fow.setMask(this.mask);
     this.fow.fillRect(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     this.fow.setPipeline("Light2D");
@@ -253,19 +242,22 @@ export class Game extends Scene {
     );
     //this.light.setPosition(newX, newY);
 
+    this.ray.setAngle(this.player.sprite.rotation);
     // Set the new position of the ray
     //this.ray.setOrigin(newX+this.player.offset/4, newY+this.player.offset/4);
     this.ray.setOrigin(newX, newY)
 
     //cast ray in all directions
-    this.intersections = this.ray.castCircle();
-    //set ray's cone angle (in radians)
-    //this.ray.setCone(1);
-    //set ray's cone angle (in degrees)
-    //this.ray.setConeDeg(360);
+    this.ray.setCone(PLAYER_INNER_CONE);
+    this.light.setPosition(newX, newY);
+
+
 
     //cast rays in a cone
-    //this.intersections = this.ray.castCone();
+    this.intersections = this.ray.castCone();
+    // add player position (to paint the full thing)
+    this.intersections.push({ x: this.player.sprite.x, y: this.player.sprite.y })
+
     //redraw
     this.drawIntersections();
   }

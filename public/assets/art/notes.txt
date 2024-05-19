@@ -25,3 +25,12 @@ tiled:
 
 embed tilesheet
 export csv
+
+
+
+references:
+https://unitycodemonkey.com/game.php?g=topdownshooter
+
+
+better: survivor squad:
+https://store.steampowered.com/app/258050/Survivor_Squad/?curator_clanid=33024841&curator_listid=41658
