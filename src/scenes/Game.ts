@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 // @ts-ignore
-import Player from './Player.js'
+import Player from './Player'
 
 const PLAYER_SPAWN = "Spawn Point";
 
@@ -8,7 +8,8 @@ export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
   playerGraphics: Phaser.GameObjects.Graphics;
-  player: any;
+  player: Player;
+  
   // msg_text: Phaser.GameObjects.Text;
 
   constructor() {
