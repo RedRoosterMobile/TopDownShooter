@@ -1,8 +1,14 @@
 import { Scene } from 'phaser';
+// @ts-ignore
+import Player from './Player.js'
+
+const PLAYER_SPAWN = "Spawn Point";
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
+  playerGraphics: Phaser.GameObjects.Graphics;
+  player: any;
   // msg_text: Phaser.GameObjects.Text;
 
   constructor() {
@@ -39,21 +45,27 @@ export class Game extends Scene {
     // @ts-ignore
     mapWalls.setCollisionByProperty({ collides: true });
     this.camera.setZoom(4)
-    this.camera.setScroll(-300, -250)
+    
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    const spawnPoint = map.findObject(
+      "Objects",
+      (obj) => obj.name === PLAYER_SPAWN
+    );
+    console.log(spawnPoint);
+    // @ts-ignore
+    this.player = new Player(this, spawnPoint.x, spawnPoint.y, mapWalls);
+    this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
 
-    var graphics = this.add.graphics({
-      fillStyle: { color: 0xff0000 } // red color
-    });
-    var circle = new Phaser.Geom.Circle(this.camera.scrollX + Number(this.game.config.width) / 2, this.camera.scrollY + Number(this.game.config.height) / 2, 5); // x=100, y=200, radius=50
+   
+    // @ts-ignore
+    this.physics.world.addCollider(this.player.sprite, mapWalls);
 
-    graphics.fillCircleShape(circle);
-    // this.groundLayer = map.createLayer("Ground", tiles).setPipeline("Light2D");
-    // // this.groundLayer.postFX.addGradient(0x000000, 0x89739C, 0.88);
-    // this.foreGround = map
-    //   .createLayer("Foreground", tiles)
-    //   .setScrollFactor(1.2)
-    //   .setY(this.game.config.height * -0.1); //.setPipeline('Light2D');
+    this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
+
+    
+  }
+  update(time: number, delta: number): void {
+    this.player.update(time, delta);
   }
 }

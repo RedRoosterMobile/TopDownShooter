@@ -69,3 +69,10 @@ declare module '*.fs' {
     const src: string
     export default src
 }
+
+
+declare module './Player' {
+    export default class Player {
+        constructor(scene: Phaser.Scene, x: number, y: number);
+    }
+}

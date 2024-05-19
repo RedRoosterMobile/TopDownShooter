@@ -37,6 +37,11 @@ export class Preloader extends Scene {
     );
 
     this.load.tilemapTiledJSON("map", "tiled/level_01.tmj");
+
+
+    // player
+
+    this.load.image('player','player.png')
   }
 
   create() {
