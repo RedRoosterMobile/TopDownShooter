@@ -32,6 +32,7 @@ export class Game extends Scene {
   map: Phaser.Tilemaps.Tilemap;
   raycaster: any;
   ray: any;
+  vignetteFx: Phaser.FX.Vignette;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -91,6 +92,9 @@ export class Game extends Scene {
 
     this.createRaycast();
     this.createLights();
+    this.createVignette()
+
+
   }
   createLights() {
     this.lights.enable();
@@ -107,6 +111,15 @@ export class Game extends Scene {
     const light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
     light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
     return light
+  }
+
+  createVignette() {
+    //console.log(this.maskGraphics.postFX);
+    this.vignetteFx =
+      this.camera.postFX.addVignette(0, 0, 0.9, 0.5);
+    // this.camera.setZoom(0.5)
+    //  this.vignetteFx.radius = 1;
+    //  this.vignetteFx.strength = 0.9;
   }
 
   createRaycast() {
@@ -232,6 +245,16 @@ export class Game extends Scene {
 
   update(time: number, delta: number): void {
     this.player.update(time, delta);
+    if (this.vignetteFx) {
+      // const zto1= Math.sin(time/500)*0.05;
+      // this.vignetteFx.x = 0.5+zto1;//this.player.sprite.x/Number(this.game.config.width);
+      // this.vignetteFx.y = 0.5+zto1;//this.player.sprite.y/Number(this.game.config.height);
+
+      // battery low effect:
+      const zto1= Math.sin(time/5)*0.05;
+      this.vignetteFx.x = 0.5+zto1;//this.player.sprite.x/Number(this.game.config.width);
+      this.vignetteFx.y = 0.5+zto1;//this.player.sprite.y/Number(this.game.config.height);
+    }
     this.drawLights();
 
     //get all game objects in field of view (which bodies overlap ray's field of view)

@@ -16,7 +16,8 @@ const config: Types.Core.GameConfig = {
     height: 768,
     pixelArt: true,
     parent: 'game-container',
-    backgroundColor: '#028af8',
+    //backgroundColor: '#028af8',
+    backgroundColor: '#000000',
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH

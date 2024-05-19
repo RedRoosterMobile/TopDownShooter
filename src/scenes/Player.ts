@@ -139,19 +139,13 @@ export default class Player {
     const bullet = this.scene.physics.add
       .sprite(bulletX, bulletY, "sprites", "sprBullet2_0.png")
       .setScale(bulletScale)
-      .setRotation(sprite.rotation);
+      .setRotation(sprite.rotation).setTint(0x000000);
     bullet.body.setSize(
       bullet.displayWidth * 0.75,
       bullet.displayHeight * 0.45
     );
 
-    const light = this.scene.createLight().setIntensity(0).setRadius(0);
-    this.scene.tweens.add({
-      targets: light,
-      duration: 500,
-      intensity: 2,
-      radius: 200,
-    })
+
 
     // muzzle
     this.scene.time.delayedCall(3, () => {
@@ -167,6 +161,15 @@ export default class Player {
       bullet,
       this.collisionLayer,
       (bullet, groundLayer) => {
+        const light = this.scene.createLight().setIntensity(0).setRadius(0);
+        const impactFlickerTime = 5;
+        this.scene.tweens.add({
+          targets: light,
+          duration: impactFlickerTime,
+          intensity: 1.5 + Phaser.Math.FloatBetween(0, 0.7),
+          ease: 'Power2',
+          radius: 200 + Phaser.Math.Between(-5, 5),
+        })
 
         //let currentTint = groundLayer.tint;
         //groundLayer.tint = darken(currentTint, 2.2);
@@ -205,7 +208,8 @@ export default class Player {
           this.scene.tweens.add({
             targets: light,
             intensity: 0,
-            duration: 500,
+            radius: 0,
+            duration: impactFlickerTime,
             ease: 'Power2',
             onComplete: () => {
               light.setVisible(false);
