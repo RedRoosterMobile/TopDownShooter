@@ -3,6 +3,8 @@ export default class Player {
   collisionLayer: Phaser.Tilemaps.TilemapLayer;
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   keys: object;
+  targetAngle: number;
+  public offset: number;
   /**
    *
    * @param {Phaser.Scene} scene
@@ -16,11 +18,13 @@ export default class Player {
     this.sprite = scene.physics.add
       .sprite(x, y, "player")
       .setDrag(500, 500)
+      .setOrigin(0.5,0.5)
       .setMaxVelocity(300, 10000);
     const width = this.sprite.width;
     const newWidth = width * 0.35;
     const diff = width - newWidth;
-    this.sprite.setCircle(newWidth, diff / 4 + 0.5, diff / 4 + 0.5)
+    this.offset = diff / 4 + 0.5;
+    this.sprite.setCircle(newWidth, this.offset, this.offset)
 
     // Track the arrow keys & WASD
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
@@ -69,21 +73,22 @@ export default class Player {
       sprite.setVelocityY((moveY / len) * acceleration);
 
       // Calculate the target angle
-      let targetAngle = Math.atan2(moveY, moveX);
+      this.targetAngle = Math.atan2(moveY, moveX);
 
       // Adjust the target angle to ensure shortest rotation
-      const angleDiff = targetAngle - sprite.rotation;
+      const angleDiff = this.targetAngle - sprite.rotation;
       if (angleDiff > Math.PI) {
-        targetAngle -= 2 * Math.PI;
+        this.targetAngle -= 2 * Math.PI;
       } else if (angleDiff < -Math.PI) {
-        targetAngle += 2 * Math.PI;
+        this.targetAngle += 2 * Math.PI;
       }
 
       // Lerp the sprite's rotation towards the target angle
       const t = delta / 100; // Adjust the speed of rotation
-      const nextAngle = lerp(sprite.rotation, targetAngle, t);
+      const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
       sprite.setRotation(nextAngle);
     } else {
+      sprite.setRotation(this.targetAngle);
       sprite.setVelocityX(0);
       sprite.setVelocityY(0);
     }
