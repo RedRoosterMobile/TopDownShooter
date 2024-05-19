@@ -1,4 +1,5 @@
-const BULLET_VEOCITY = 250;
+const BULLET_VELOCITY = 250;
+const SHELL_VELOCITY = 50;
 
 export default class Player {
   scene: Phaser.Scene;
@@ -189,13 +190,48 @@ export default class Player {
         this.scene.time.delayedCall(400, () => {
           bulletImpact.destroy();
         });
-        // this.explosion(bullet);
+        //@ts-ignore
+        this.explosion(bullet);
 
         // kill bullet
         bullet.destroy();
       }
     );
-    const velocity = BULLET_VEOCITY;
+
+
+
+
+    // ----- shells ----------
+    const shell = this.scene.physics.add
+      .sprite(sprite.x, sprite.y, "sprites", "sprShell_0.png")
+      .setScale(1)
+      .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
+    //.setAngle(Phaser.Math.Between(0, 9));
+    shell.body.setSize(shell.displayWidth * 0.1, shell.displayHeight * 0.1);
+
+    // shell.body.setVelocity(
+    //   sprite.displayWidth * 5,
+    //   Phaser.Math.Between(-250, -500)
+    // );
+    // set bullet velocity
+    shell.body.setVelocity(
+      SHELL_VELOCITY * Math.cos(sprite.rotation) * -1,
+      SHELL_VELOCITY * Math.sin(sprite.rotation) * -1
+    );
+    this.scene.physics.world.addCollider(
+      shell,
+      this.collisionLayer,
+      (_, groundLayer) => {
+        // When the shell hits the ground, stop its horizontal movement
+        shell.body.setVelocityX(Math.max(shell.body.velocity.x - 20, 0));
+      }
+    );
+
+    this.scene.time.delayedCall(2000, () => {
+      shell.body.setEnable(false);
+    });
+
+    const velocity = BULLET_VELOCITY;
     // set bullet velocity
     bullet.setVelocity(
       velocity * Math.cos(sprite.rotation),
@@ -206,6 +242,69 @@ export default class Player {
 
   }
 
+  explosion(bullet: Phaser.GameObjects.Sprite) {
+    const explosionYRnd = 10;
+    const bulletExplosionOnGround = this.scene.add
+      .sprite(
+        bullet.x,
+        bullet.y + Phaser.Math.FloatBetween(-explosionYRnd, explosionYRnd),
+        "sprites",
+        "sprExplosion_0.png"
+      )
+      .setScale(Phaser.Math.FloatBetween(0.25, 1))
+      .setAlpha(0.781);
+
+    bulletExplosionOnGround.anims.create({
+      key: "explosion",
+      frames: bulletExplosionOnGround.anims.generateFrameNames("sprites", {
+        start: 0,
+        end: 1,
+        prefix: "sprExplosion_",
+        suffix: ".png"
+      }),
+      frameRate: 4,
+      repeat: -1
+    });
+    bulletExplosionOnGround.play("explosion");
+    const width = Number(this.scene.game.config.width);
+    const startX = this.sprite.x;
+    const endX = bulletExplosionOnGround.x;
+    const maxDistance = width / 1.5; // The maximum distance at which the sound can be heard
+    const absDiff = Math.abs(startX - endX);
+    const volume = 1 - absDiff / maxDistance;
+    // this.scene.sound.play("explosion", {
+    //   rate: Phaser.Math.FloatBetween(0.5, 1),
+    //   volume: volume
+    // });
+    this.scene.time.delayedCall(
+      400,
+      () => {
+        const smoke = this.scene.add
+          .sprite(
+            bulletExplosionOnGround.x,
+            bulletExplosionOnGround.y,
+            "sprites",
+            "sprSmoke_0.png"
+          )
+          .setScale(Phaser.Math.FloatBetween(0.25, 1));
+        const smokeDistance = 5;
+        this.scene.tweens.add({
+          targets: smoke,
+          alpha: { from: 1, to: 0 },
+          x: { from: smoke.x, to: smoke.x + Phaser.Math.FloatBetween(-smokeDistance, smokeDistance) },
+          y: { from: smoke.y, to: smoke.y + Phaser.Math.FloatBetween(-smokeDistance, smokeDistance) },
+          duration: 2000 + Phaser.Math.FloatBetween(-200, 200),
+          onComplete: () => {
+            smoke.destroy();
+          }
+        });
+
+        bulletExplosionOnGround.destroy();
+      },
+      [],
+      this
+    );
+  }
 
   destroy() {
     //this.scene.events.destroy();

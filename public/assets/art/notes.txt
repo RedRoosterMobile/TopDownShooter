@@ -38,6 +38,8 @@ push away the zombie (slow mo)
 to then be able and shoot him and potentially others
 during bullet time
 
+works better when against the wall
+
 
 when shot, make them fly off in the opposite direction
 leaving a trail of blood on the floor
