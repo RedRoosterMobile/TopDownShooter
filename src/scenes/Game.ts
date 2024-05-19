@@ -6,6 +6,13 @@ import PhaserRaycaster from 'phaser-raycaster'
 const PLAYER_SPAWN = "Spawn Point";
 const PLAYER_INNER_CONE = 0.5 * Math.PI;
 const PLAYER_CONSTANT_LIGHT_CIRCLE = 5;
+const FOV_ALPHA_MAIN = 0.8; // higher is darker
+const INNER_LIGHT_CIRCLE = {
+  intensity: 2,
+  //color: 0xff0000, 
+  color: 0x808080,
+  radius: 200
+};
 
 export class Game extends Scene {
   raycasterPlugin: PhaserRaycaster
@@ -34,6 +41,7 @@ export class Game extends Scene {
 
   create() {
     this.camera = this.cameras.main;
+    // this.camera.postFX.addBloom()
     this.camera.setBackgroundColor(0x00ff00);
 
     this.background = this.add.image(512, 384, 'background');
@@ -58,7 +66,7 @@ export class Game extends Scene {
     // @ts-ignore
     const mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
     // @ts-ignore
-    this.mapWalls = this.map.createLayer("walls", tiles).setPipeline('Light2D');
+    this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls.setCollisionByProperty({ collides: true });
     this.camera.setZoom(4)
@@ -88,12 +96,12 @@ export class Game extends Scene {
     this.lights.enable();
 
     //this.lights.setAmbientColor(0x808080);
-    this.lights.setAmbientColor(0xff0000);
+    this.lights.setAmbientColor(INNER_LIGHT_CIRCLE.color);
 
-    this.light = this.lights.addLight(0, 0, 400);
-    this.light.setIntensity(2);
+    this.light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
+    this.light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
     // @ts-ignore
-    window.ll = this.light;
+    // window.ll = this.light;
   }
 
   createRaycast() {
@@ -101,7 +109,7 @@ export class Game extends Scene {
 
     this.raycaster = this.raycasterPlugin.createRaycaster({
       debug: {
-        enabled: true, //enable debug mode
+        enabled: false, //enable debug mode
         maps: true, //enable maps debug
         rays: true, //enable rays debug
         graphics: {
@@ -213,7 +221,7 @@ export class Game extends Scene {
 
     this.mask.setInvertAlpha();
     this.fow = this.add
-      .graphics({ fillStyle: { color: 0x000000, alpha: 0.8 } })
+      .graphics({ fillStyle: { color: 0x000000, alpha: FOV_ALPHA_MAIN } })
       .setDepth(2);
     this.fow.setMask(this.mask);
     this.fow.fillRect(0, 0, this.map.widthInPixels, this.map.heightInPixels);

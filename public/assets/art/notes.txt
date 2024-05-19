@@ -17,8 +17,38 @@ https://marceles.itch.io/land-of-pixels-laboratory-tileset-pixel-art
 
 
 
+Lights:
+When two pixels with alpha 0.5 overlap, the resulting alpha would not be 1.0, but it would be closer to 0.75. This is because alpha blending is not simply additive. The formula for alpha blending is:
+
+Resulting Alpha = Alpha1 + Alpha2 * (1 - Alpha1)
 
 
+features:
+
+https://www.youtube.com/watch?v=jHt_5y671BQ
+A* pathfinding
+random zombie spawnpoints (but predefined)
+random level generation??
+fog of war ? https://youtu.be/jHt_5y671BQ?si=E_idr47dCzrGzgIY&t=239
+
+
+make them jump at you
+you have to push a button (minigame) to get enough force to:
+push away the zombie (slow mo)
+to then be able and shoot him and potentially others
+during bullet time
+
+
+when shot, make them fly off in the opposite direction
+leaving a trail of blood on the floor
+they will keep bouncing off walls(or explode?)
+
+
+
+Permanence:
+- bullets,
+- footprints
+- blood splatters (from particle system?)
 
 
 tiled:
@@ -34,3 +64,6 @@ https://unitycodemonkey.com/game.php?g=topdownshooter
 
 better: survivor squad:
 https://store.steampowered.com/app/258050/Survivor_Squad/?curator_clanid=33024841&curator_listid=41658
+
+!!!!!!
+https://www.youtube.com/watch?v=jHt_5y671BQ

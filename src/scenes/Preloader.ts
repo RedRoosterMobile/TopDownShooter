@@ -42,6 +42,14 @@ export class Preloader extends Scene {
     // player
 
     this.load.image('player','player.png')
+
+
+    // bullets and stuff
+    this.load.atlas(
+      "sprites",
+      "sprites.png",
+      "sprites.json"
+    );
   }
 
   create() {
