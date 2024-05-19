@@ -98,10 +98,15 @@ export class Game extends Scene {
     //this.lights.setAmbientColor(0x808080);
     this.lights.setAmbientColor(INNER_LIGHT_CIRCLE.color);
 
-    this.light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
-    this.light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
+    this.light = this.createLight();
     // @ts-ignore
     // window.ll = this.light;
+  }
+
+  public createLight(): Phaser.GameObjects.Light {
+    const light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
+    light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
+    return light
   }
 
   createRaycast() {
@@ -163,7 +168,7 @@ export class Game extends Scene {
     this.createFOV();
 
     //set depths
-    this.fow.setDepth(1);
+    this.fow.setDepth(100);
     //topTilemapLayer.setDepth(2);
     this.graphics.setDepth(3);
 
@@ -177,9 +182,7 @@ export class Game extends Scene {
     // //cast ray
 
 
-    //get all game objects in field of view (which bodies overlap ray's field of view)
-    let visibleObjects = this.ray.overlap();
-    console.log(visibleObjects);
+
 
     //draw rays
     this.drawIntersections();
@@ -209,7 +212,6 @@ export class Game extends Scene {
     //draw fov mask
     this.maskGraphics.fillPoints(this.intersections);
     this.maskGraphics.fillCircle(this.player.sprite.x, this.player.sprite.y, PLAYER_CONSTANT_LIGHT_CIRCLE)
-    // this.maskGraphics.fillGradientStyle()
   }
 
   //create field of view
@@ -231,12 +233,14 @@ export class Game extends Scene {
   update(time: number, delta: number): void {
     this.player.update(time, delta);
     this.drawLights();
+
+    //get all game objects in field of view (which bodies overlap ray's field of view)
+    //let visibleObjects = this.ray.overlap();
+    //console.log(visibleObjects);
   }
 
   drawLights() {
-
     const delayFactor = 0.25;
-    // this.ray.setOrigin(this.player.sprite.x, this.player.sprite.y);
     // Calculate the new positions with delay
     const newX = Phaser.Math.Linear(
       this.ray.origin.x,
@@ -248,25 +252,21 @@ export class Game extends Scene {
       this.player.sprite.y,
       delayFactor
     );
-    //this.light.setPosition(newX, newY);
 
     this.ray.setAngle(this.player.sprite.rotation);
     // Set the new position of the ray
-    //this.ray.setOrigin(newX+this.player.offset/4, newY+this.player.offset/4);
     this.ray.setOrigin(newX, newY)
 
     //cast ray in all directions
     this.ray.setCone(PLAYER_INNER_CONE);
     this.light.setPosition(newX, newY);
 
-
-
-    //cast rays in a cone
+    // cast rays in a cone
     this.intersections = this.ray.castCone();
     // add player position (to paint the full thing)
     this.intersections.push({ x: this.player.sprite.x, y: this.player.sprite.y })
 
-    //redraw
+    // redraw
     this.drawIntersections();
   }
 }

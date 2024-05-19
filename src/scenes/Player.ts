@@ -1,8 +1,10 @@
+import { Game } from "./Game";
+
 const BULLET_VELOCITY = 250;
-const SHELL_VELOCITY = 50;
+const SHELL_VELOCITY = 150;
 
 export default class Player {
-  scene: Phaser.Scene;
+  scene: Game;
   collisionLayer: Phaser.Tilemaps.TilemapLayer;
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   keys: object;
@@ -12,11 +14,11 @@ export default class Player {
   allowShooting: boolean;
   /**
    *
-   * @param {Phaser.Scene} scene
+   * @param {Game} scene
    * @param {*} x
    * @param {*} y
    */
-  constructor(scene: Phaser.Scene, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
+  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
     // Create the physics-based sprite that we will move around and animate
@@ -143,10 +145,17 @@ export default class Player {
       bullet.displayHeight * 0.45
     );
 
+    const light = this.scene.createLight().setIntensity(0).setRadius(0);
+    this.scene.tweens.add({
+      targets: light,
+      duration: 500,
+      intensity: 2,
+      radius: 200,
+    })
+
     // muzzle
     this.scene.time.delayedCall(3, () => {
       bullet.setFrame("sprBullet2_1.png");
-
     });
     // shooting frequency
     this.scene.time.delayedCall(300, () => {
@@ -174,6 +183,8 @@ export default class Player {
           )
           //.setScale(2)
           .setAlpha(0.781)
+        // @ts-ignore
+        light.setPosition(bullet.x, bullet.y)//.setVisible(true);
 
         bulletImpact.anims.create({
           key: "impact",
@@ -189,7 +200,18 @@ export default class Player {
         bulletImpact.setRotation(sprite.rotation);
         this.scene.time.delayedCall(400, () => {
           bulletImpact.destroy();
-        });
+          // @ts-ignore
+          //light.destroy();
+          this.scene.tweens.add({
+            targets: light,
+            intensity: 0,
+            duration: 500,
+            ease: 'Power2',
+            onComplete: () => {
+              light.setVisible(false);
+            }
+          })
+        })
         //@ts-ignore
         this.explosion(bullet);
 
@@ -198,35 +220,33 @@ export default class Player {
       }
     );
 
-
-
-
     // ----- shells ----------
     const shell = this.scene.physics.add
       .sprite(sprite.x, sprite.y, "sprites", "sprShell_0.png")
-      .setScale(1)
+      //.setScale(1)
+      .setBounce(0.1)
+      .setDrag(20)
       .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
     //.setAngle(Phaser.Math.Between(0, 9));
     shell.body.setSize(shell.displayWidth * 0.1, shell.displayHeight * 0.1);
 
-    // shell.body.setVelocity(
-    //   sprite.displayWidth * 5,
-    //   Phaser.Math.Between(-250, -500)
-    // );
-    // set bullet velocity
+    // maybe cooler to fly to the side in a curve?
+    const error = Phaser.Math.FloatBetween(-0.1, 0.1)
+    // set bullet velocity the other direction
     shell.body.setVelocity(
-      SHELL_VELOCITY * Math.cos(sprite.rotation) * -1,
-      SHELL_VELOCITY * Math.sin(sprite.rotation) * -1
+      SHELL_VELOCITY * Math.cos(sprite.rotation + error - Math.PI / 2),
+      SHELL_VELOCITY * Math.sin(sprite.rotation + error - Math.PI / 2)
     );
     this.scene.physics.world.addCollider(
       shell,
       this.collisionLayer,
       (_, groundLayer) => {
         // When the shell hits the ground, stop its horizontal movement
-        shell.body.setVelocityX(Math.max(shell.body.velocity.x - 20, 0));
+        //shell.body.setVelocityX(Math.max(shell.body.velocity.x - 20, 0));
       }
     );
 
+    // disable body after a while
     this.scene.time.delayedCall(2000, () => {
       shell.body.setEnable(false);
     });
@@ -237,9 +257,6 @@ export default class Player {
       velocity * Math.cos(sprite.rotation),
       velocity * Math.sin(sprite.rotation)
     );
-
-
-
   }
 
   explosion(bullet: Phaser.GameObjects.Sprite) {
@@ -266,12 +283,7 @@ export default class Player {
       repeat: -1
     });
     bulletExplosionOnGround.play("explosion");
-    const width = Number(this.scene.game.config.width);
-    const startX = this.sprite.x;
-    const endX = bulletExplosionOnGround.x;
-    const maxDistance = width / 1.5; // The maximum distance at which the sound can be heard
-    const absDiff = Math.abs(startX - endX);
-    const volume = 1 - absDiff / maxDistance;
+
     // this.scene.sound.play("explosion", {
     //   rate: Phaser.Math.FloatBetween(0.5, 1),
     //   volume: volume
