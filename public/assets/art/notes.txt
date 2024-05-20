@@ -53,6 +53,12 @@ Permanence:
 - blood splatters (from particle system?)
 
 
+alternative fog of war:
+https://labs.phaser.io/edit.html?src=src/game%20objects\render%20texture\render%20texture%20as%20a%20mask.js
+
+paint all light to a render texture, use that as mask (have transparency gradients and stuff)
+keep painting current FOV to texture, add more stuff, like lights in the map
+
 tiled:
 
 embed tilesheet
@@ -69,3 +75,10 @@ https://store.steampowered.com/app/258050/Survivor_Squad/?curator_clanid=3302484
 
 !!!!!!
 https://www.youtube.com/watch?v=jHt_5y671BQ
+
+
+MUSIC/OST:
+
+Amiga hungarian minor a
+Synthseeker 80ies C minor
+Myterious C phrygian

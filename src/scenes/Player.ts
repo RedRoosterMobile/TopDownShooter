@@ -1,8 +1,10 @@
 import { Game } from "./Game";
 
-const BULLET_VELOCITY = 250*2;
+const BULLET_VELOCITY = 250 * 2;
 const SHELL_VELOCITY = 150;
-const SHOOTING_FREQUENCY= 200;
+const SHOOTING_FREQUENCY = 200;
+const weaponScreenshake = 0.00025;
+const weaponKnockback = 50;
 
 export default class Player {
   scene: Game;
@@ -235,6 +237,9 @@ export default class Player {
         })
         //@ts-ignore
         this.explosion(bullet);
+        // ----- screen pizzazz ----------
+        // make dependent on zoom
+        this.scene.cameras.main.shake(20, weaponScreenshake);
 
         // kill bullet
         bullet.destroy();
@@ -278,6 +283,23 @@ export default class Player {
       velocity * Math.cos(sprite.rotation),
       velocity * Math.sin(sprite.rotation)
     );
+    const scaler = 1;
+    const intensity = 50;
+    const randomX = Phaser.Math.FloatBetween(-intensity, intensity);
+    const randomY = Phaser.Math.FloatBetween(-intensity, intensity);
+    this.sprite.setAcceleration(bullet.body.velocity.x * -scaler + randomX, bullet.body.velocity.y * -scaler + randomY)
+    this.scene.time.delayedCall(100, () => {
+      this.sprite.setAcceleration(0, 0);
+    })
+
+    // ----- knockback ----------
+    // const directionX =  weaponKnockback;
+    // this.sprite.setAccelerationX(directionX * weaponKnockback);
+    // this.scene.time.delayedCall(50, () => {
+    //   // stop knockback
+    //   this.sprite.setAccelerationX(0);
+    // });
+    // this.scene.cameras.main.shake(20, weaponScreenshake);
   }
 
   explosion(bullet: Phaser.GameObjects.Sprite) {

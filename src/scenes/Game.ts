@@ -99,11 +99,17 @@ export class Game extends Scene {
     this.createVignette()
     this.createHorrifyFx();
   }
-  createHorrifyFx() {
 
+  createHorrifyFx() {
     const horrifySettings = {
       vhsStrength: 0.1,
-      scanlineStrength: 0.1
+      scanlineStrength: 0.1,
+      // NYI
+      bloomIntensity: 0.5,
+      crtSize: 1000,
+      // chromatic abberation
+      chabIntensity: 0.2
+
     }
     // @ts-ignore
     //var pipelineInstance = this.scene.get('rexHorrifiPipeline').add(this.camera, this.game.config);
