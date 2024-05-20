@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 // @ts-ignore
 import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
@@ -96,6 +97,36 @@ export class Game extends Scene {
     this.createRaycast();
     this.createLights();
     this.createVignette()
+    this.createHorrifyFx();
+  }
+  createHorrifyFx() {
+
+    const horrifySettings = {
+      vhsStrength: 0.1,
+      scanlineStrength: 0.1
+    }
+    // @ts-ignore
+    //var pipelineInstance = this.scene.get('rexHorrifiPipeline').add(this.camera, this.game.config);
+    this.camera.setPostPipeline(HorrifiPostFx);
+    const pipeline = this.camera.getPostPipeline(HorrifiPostFx);
+    //@ts-ignore
+    window.pp = pipeline;
+
+
+    // @ts-ignore
+    pipeline.setScanlinesEnable(true);
+    // @ts-ignore
+    pipeline.setScanStrength(horrifySettings.scanlineStrength);
+
+
+    // @ts-ignore
+    pipeline.setVHSEnable(true);
+    // @ts-ignore
+    pipeline.setVhsStrength(horrifySettings.vhsStrength);
+    // console.log(this.camera.getPostPipeline(HorrifiPostFx));
+
+
+
   }
   createLights() {
     this.lights.enable();

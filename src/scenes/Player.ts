@@ -1,7 +1,8 @@
 import { Game } from "./Game";
 
-const BULLET_VELOCITY = 250;
+const BULLET_VELOCITY = 250*2;
 const SHELL_VELOCITY = 150;
+const SHOOTING_FREQUENCY= 200;
 
 export default class Player {
   scene: Game;
@@ -80,6 +81,10 @@ export default class Player {
       this.shootBullet(this.sprite);
     }
 
+    // walking animation (sprites)
+    // https://sienas.artstation.com/projects/rRrQlO
+    // https://www.dropbox.com/sh/dh431ggetqals39/AADwMp6z023Rm2v-pLc3VVNYa/Player?dl=0&subfolder_nav_tracking=1
+
     // Normalize the movement vector and scale it by the acceleration
     const len = Math.sqrt(moveX * moveX + moveY * moveY);
     if (len != 0) {
@@ -153,14 +158,13 @@ export default class Player {
       bullet.setFrame("sprBullet2_1.png");
     });
     // shooting frequency
-    this.scene.time.delayedCall(300, () => {
+    this.scene.time.delayedCall(SHOOTING_FREQUENCY, () => {
       this.allowShooting = true;
     });
 
     const light = this.scene.createLight()
       .setIntensity(0)
       .setRadius(0);
-      console.log(light);
     // make light fly along
     // this.timerEvent = this.scene.time.addEvent({
     //   delay: 50,

@@ -7,6 +7,9 @@ import { Preloader } from './scenes/Preloader';
 import { Game, Types } from "phaser";
 
 import PhaserRaycaster from 'phaser-raycaster'
+import HorrifiPipelinePlugin from 'phaser3-rex-plugins/plugins/horrifipipeline-plugin.js';
+
+import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -36,8 +39,16 @@ const config: Types.Core.GameConfig = {
         MainGame,
         GameOver
     ],
-    // https://wiserim.github.io/phaser-raycaster/
+    
+    // @ts-ignore
+    pipeline: [HorrifiPostFx],
     plugins: {
+        global: [{
+            key: 'rexHorrifiPipeline',
+            plugin: HorrifiPipelinePlugin,
+            start: true
+        }],
+        // https://wiserim.github.io/phaser-raycaster/
         scene: [
             {
                 key: 'PhaserRaycaster',
