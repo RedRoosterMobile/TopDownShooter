@@ -3,10 +3,12 @@ import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 // @ts-ignore
 import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
+import Enemy from './Enemy';
 
 const PLAYER_SPAWN = "Spawn Point";
-const PLAYER_INNER_CONE = 0.5 * Math.PI;
-const PLAYER_CONSTANT_LIGHT_CIRCLE = 5;
+const ENEMY = "Enemy";
+const PLAYER_INNER_CONE = 0.45 * Math.PI;
+const PLAYER_CONSTANT_LIGHT_CIRCLE = 7.5; // better make it a (rounded) rectangle??
 const FOV_ALPHA_MAIN = 0.8; // higher is darker: was 0.8
 const INNER_LIGHT_CIRCLE = {
   intensity: 2,
@@ -35,6 +37,8 @@ export class Game extends Scene {
   ray: any;
   vignetteFx: Phaser.FX.Vignette;
   rotateCameraTime: number;
+  enemies: Array<Enemy>;
+  keyN: Phaser.Input.Keyboard.Key;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -50,6 +54,8 @@ export class Game extends Scene {
 
     this.background = this.add.image(512, 384, 'background');
     this.background.setAlpha(0.5);
+    this.enemies = [];
+
 
     // this.msg_text = this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
     //   fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
@@ -86,6 +92,10 @@ export class Game extends Scene {
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
     this.player.sprite.body.setCollideWorldBounds(true);
 
+
+
+    this.spawnEnemies();
+
     this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
 
 
@@ -98,8 +108,25 @@ export class Game extends Scene {
     this.createLights();
     //this.createVignette()
     this.createHorrifyFx();
+    this.createInput();
   }
 
+  createInput() {
+
+    // @ts-ignore
+    this.keyN = this.input.keyboard ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N) : {};
+    console.log('jdifvbeiwueoubobo', this.keyN, this.input.keyboard);
+    
+  }
+  spawnEnemies() {
+    const spawnPointEnemy = this.map.findObject(
+      "Objects",
+      (obj) => obj.name === ENEMY
+    );
+    // @ts-ignore
+    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls)
+    this.enemies.push(enemy);
+  }
   createHorrifyFx() {
     const horrifySettings = {
       vhsStrength: 0.05,
@@ -218,6 +245,7 @@ export class Game extends Scene {
     // 600 tiles???
     let array = Array.from({ length: 600 }, (_, i) => i + 1);
 
+    // @ts-ignore
     this.raycaster.mapGameObjects(this.mapWalls, false, {
       collisionTiles: array
     });
@@ -230,8 +258,6 @@ export class Game extends Scene {
 
     // check draw() function!!!!
     this.ray.setCone(PLAYER_INNER_CONE);
-
-
 
     //cast rays in a cone
     this.intersections = this.ray.castCone();
@@ -317,7 +343,7 @@ export class Game extends Scene {
   // drunk effect
   rotateCamera(delta: number) {
     // take player movement into account. vectors?
-    // hotline miami stlye https://www.youtube.com/watch?v=hT-dyANbHDY
+    // hotline miami style https://www.youtube.com/watch?v=hT-dyANbHDY
     const isMoving = this.player.sprite.body.velocity.length();
     if (isMoving) {
       this.rotateCameraTime += delta;
@@ -328,6 +354,9 @@ export class Game extends Scene {
 
   update(time: number, delta: number): void {
     this.player.update(time, delta);
+    if (Phaser.Input.Keyboard.JustDown(this.keyN)) {;
+      this.spawnEnemies();
+    }
     this.rotateCamera(delta);
     if (this.vignetteFx) {
       // const zto1= Math.sin(time/500)*0.05;
@@ -372,7 +401,31 @@ export class Game extends Scene {
     // cast rays in a cone
     this.intersections = this.ray.castCone();
     // add player position (to paint the full thing)
-    this.intersections.push({ x: this.player.sprite.x, y: this.player.sprite.y })
+
+    //this.intersections.push({ x: this.player.sprite.x, y: this.player.sprite.y })
+    // Assume you have a starting point (x, y), a distance d, and an angle in radians.
+    let x = this.player.sprite.x;
+    let y = this.player.sprite.y;
+    let d = -8; // replace with your desired distance
+    let angle = this.player.sprite.rotation; // your starting angle
+
+    // Calculate points at 90 degrees to the left and right
+    let leftAngle = angle - Math.PI / 2; // 90 degrees to the left
+    let rightAngle = angle + Math.PI / 2; // 90 degrees to the right
+
+    // Calculate the new points
+    let leftPoint = new Phaser.Geom.Point(
+      x + d * Math.cos(leftAngle),
+      y + d * Math.sin(leftAngle)
+    );
+    let rightPoint = new Phaser.Geom.Point(
+      x + d * Math.cos(rightAngle),
+      y + d * Math.sin(rightAngle)
+    );
+
+    // geometry,
+    this.intersections.push({ x: leftPoint.x, y: leftPoint.y })
+    this.intersections.push({ x: rightPoint.x, y: rightPoint.y })
 
     // redraw
     this.drawIntersections();

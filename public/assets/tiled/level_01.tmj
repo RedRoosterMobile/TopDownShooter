@@ -57,6 +57,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":20,
          "id":1,
+         "locked":true,
          "name":"walls",
          "opacity":1,
          "type":"tilelayer",
@@ -68,7 +69,6 @@
         {
          "draworder":"topdown",
          "id":3,
-         "locked":true,
          "name":"Objects",
          "objects":[
                 {
@@ -81,15 +81,26 @@
                  "width":0,
                  "x":278.343516632722,
                  "y":55.1595383570944
+                }, 
+                {
+                 "height":0,
+                 "id":2,
+                 "name":"Enemy",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":295.82,
+                 "y":167.71
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":2,
+ "nextobjectid":3,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

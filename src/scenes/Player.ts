@@ -1,3 +1,4 @@
+import Enemy from "./Enemy";
 import { Game } from "./Game";
 
 const BULLET_VELOCITY = 250 * 2;
@@ -16,6 +17,7 @@ export default class Player {
   public nextAngle: number;
   allowShooting: boolean;
   timerEvent: Phaser.Time.TimerEvent;
+  legs: Phaser.GameObjects.Sprite;
   /**
    *
    * @param {Game} scene
@@ -25,6 +27,9 @@ export default class Player {
   constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
+    this.legs = scene.add
+      .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
+
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
       .sprite(x, y, "player")
@@ -52,6 +57,32 @@ export default class Player {
       d: D,
       space: SPACE
     }) : {};
+
+    this.createAnimations();
+  }
+
+  createAnimations() {
+    this.legs.anims.create({
+      key: "idle",
+      frameRate: 10,
+      frames: [
+        { key: "legs", frame: "sprWaiterLegs_0.png" },
+      ]
+      ,
+      repeat: -1
+    });
+    this.legs.anims.create({
+      key: "walk",
+      frameRate: 15,
+      frames: this.sprite.anims.generateFrameNames("legs", {
+        start: 0,
+        end: 15,
+        prefix: "sprWaiterLegs_",
+        suffix: ".png"
+      }),
+      repeat: -1
+    });
+    this.legs.play('walk', true);
   }
 
   update(time: number, delta: number) {
@@ -109,11 +140,15 @@ export default class Player {
       const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
       sprite.setRotation(nextAngle);
       this.nextAngle = nextAngle;
+      this.legs.play('walk', true);
     } else {
       sprite.setRotation(this.targetAngle);
       sprite.setVelocityX(0);
       sprite.setVelocityY(0);
+      this.legs.play('idle', true);
     }
+    this.legs.copyPosition(sprite);
+    this.legs.setRotation(sprite.rotation);
 
   }
 
@@ -182,6 +217,29 @@ export default class Player {
       ease: 'Power2',
       radius: 200 + Phaser.Math.Between(-5, 5),
     })
+
+    this.scene.enemies.forEach((enemyObj) => {
+      this.scene.physics.world.addCollider(
+        bullet,
+        enemyObj.sprite,
+        (bullet, enemy) => {
+          // find enemy in enemies
+          const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
+
+          if (foundEnemy.length) {
+            // filter found one
+            this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
+
+            console.log('enemy hit', enemy, foundEnemy[0]);
+            const ec: Enemy = foundEnemy[0];
+            //enemy.dieFromBullet();
+            ec.destroy();
+
+          }
+        });
+
+    })
+
 
     // ----- bullet ground collisions  ----------
     this.scene.physics.world.addCollider(
@@ -283,8 +341,10 @@ export default class Player {
       velocity * Math.cos(sprite.rotation),
       velocity * Math.sin(sprite.rotation)
     );
+
+    // ----- knockback ----------
     const scaler = 1;
-    const intensity = 50;
+    const intensity = weaponKnockback;
     const randomX = Phaser.Math.FloatBetween(-intensity, intensity);
     const randomY = Phaser.Math.FloatBetween(-intensity, intensity);
     this.sprite.setAcceleration(bullet.body.velocity.x * -scaler + randomX, bullet.body.velocity.y * -scaler + randomY)
@@ -292,14 +352,7 @@ export default class Player {
       this.sprite.setAcceleration(0, 0);
     })
 
-    // ----- knockback ----------
-    // const directionX =  weaponKnockback;
-    // this.sprite.setAccelerationX(directionX * weaponKnockback);
-    // this.scene.time.delayedCall(50, () => {
-    //   // stop knockback
-    //   this.sprite.setAccelerationX(0);
-    // });
-    // this.scene.cameras.main.shake(20, weaponScreenshake);
+    this.scene.cameras.main.shake(20, weaponScreenshake);
   }
 
   explosion(bullet: Phaser.GameObjects.Sprite) {

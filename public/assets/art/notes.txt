@@ -45,7 +45,10 @@ when shot, make them fly off in the opposite direction
 leaving a trail of blood on the floor
 they will keep bouncing off walls(or explode?)
 
-
+Strafing:
+look up, shoot up by holding space
+keep holding space, to strafe anywhere while pointing up and shooting up
+until space is let go, then back to normal
 
 Permanence:
 - bullets,
@@ -82,3 +85,10 @@ MUSIC/OST:
 Amiga hungarian minor a
 Synthseeker 80ies C minor
 Myterious C phrygian
+
+
+SFX:
+
+zombie sounds
+https://www.myinstants.com/en/search/?name=ZOMBIE
+https://uppbeat.io/sfx/tag/zombie (Combat - bloody splat)
