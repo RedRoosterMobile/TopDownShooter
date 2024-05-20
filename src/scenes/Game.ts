@@ -7,7 +7,7 @@ import PhaserRaycaster from 'phaser-raycaster'
 const PLAYER_SPAWN = "Spawn Point";
 const PLAYER_INNER_CONE = 0.5 * Math.PI;
 const PLAYER_CONSTANT_LIGHT_CIRCLE = 5;
-const FOV_ALPHA_MAIN = 0.8; // higher is darker
+const FOV_ALPHA_MAIN = 0.8; // higher is darker: was 0.8
 const INNER_LIGHT_CIRCLE = {
   intensity: 2,
   //color: 0xff0000, 
@@ -96,34 +96,47 @@ export class Game extends Scene {
 
     this.createRaycast();
     this.createLights();
-    this.createVignette()
+    //this.createVignette()
     this.createHorrifyFx();
   }
 
   createHorrifyFx() {
     const horrifySettings = {
-      vhsStrength: 0.1,
+      vhsStrength: 0.05,
       scanlineStrength: 0.1,
-      // NYI
+      // better vignette
+      vignetteStrength: 5,
+      vignetteIntensity: 0.5,
+      // NYI below here...
       bloomIntensity: 0.5,
-      crtSize: 1000,
+      crtSize: this.game.config.width,
       // chromatic abberation
-      chabIntensity: 0.2
-
+      chabIntensity: 0.2,
     }
     // @ts-ignore
-    //var pipelineInstance = this.scene.get('rexHorrifiPipeline').add(this.camera, this.game.config);
     this.camera.setPostPipeline(HorrifiPostFx);
     const pipeline = this.camera.getPostPipeline(HorrifiPostFx);
-    //@ts-ignore
+    // @ts-ignore
     window.pp = pipeline;
-
 
     // @ts-ignore
     pipeline.setScanlinesEnable(true);
     // @ts-ignore
     pipeline.setScanStrength(horrifySettings.scanlineStrength);
 
+    let scanlineTime = 0;
+    this.time.addEvent({
+      delay: 50,
+      // @ts-ignore
+      callback: (arg1, arg2, arg3) => {
+        scanlineTime += 50;
+
+
+        // @ts-ignore
+        pipeline.setScanStrength(horrifySettings.scanlineStrength + Math.sin(scanlineTime / 100) * 0.025)
+      },
+      loop: true
+    });
 
     // @ts-ignore
     pipeline.setVHSEnable(true);
@@ -131,9 +144,20 @@ export class Game extends Scene {
     pipeline.setVhsStrength(horrifySettings.vhsStrength);
     // console.log(this.camera.getPostPipeline(HorrifiPostFx));
 
+    // @ts-ignore
+    pipeline.setVignetteEnable(true);
+    // @ts-ignore
+    pipeline.setVignetteStrength(horrifySettings.vignetteStrength);
+    // @ts-ignore
+    pipeline.setVignetteIntensity(horrifySettings.vignetteIntensity);
 
 
+    // @ts-ignore
+    pipeline.setCRTEnable(true);
+    // @ts-ignore
+    pipeline.setCrtSize(horrifySettings.crtSize);
   }
+
   createLights() {
     this.lights.enable();
 
