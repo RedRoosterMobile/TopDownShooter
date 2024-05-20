@@ -12,6 +12,7 @@ export default class Player {
   public offset: number;
   public nextAngle: number;
   allowShooting: boolean;
+  timerEvent: Phaser.Time.TimerEvent;
   /**
    *
    * @param {Game} scene
@@ -156,20 +157,32 @@ export default class Player {
       this.allowShooting = true;
     });
 
+    const light = this.scene.createLight()
+      .setIntensity(0)
+      .setRadius(0);
+      console.log(light);
+    // make light fly along
+    // this.timerEvent = this.scene.time.addEvent({
+    //   delay: 50,
+    //   callback: () => { light.setPosition(bullet.x, bullet.y) },
+    //   loop: true
+    // });
+
+    const impactFlickerTime = 5;
+    this.scene.tweens.add({
+      targets: light,
+      duration: impactFlickerTime,
+      intensity: 1.5 + Phaser.Math.FloatBetween(0, 0.7),
+      ease: 'Power2',
+      radius: 200 + Phaser.Math.Between(-5, 5),
+    })
+
     // ----- bullet ground collisions  ----------
     this.scene.physics.world.addCollider(
       bullet,
       this.collisionLayer,
       (bullet, groundLayer) => {
-        const light = this.scene.createLight().setIntensity(0).setRadius(0);
-        const impactFlickerTime = 5;
-        this.scene.tweens.add({
-          targets: light,
-          duration: impactFlickerTime,
-          intensity: 1.5 + Phaser.Math.FloatBetween(0, 0.7),
-          ease: 'Power2',
-          radius: 200 + Phaser.Math.Between(-5, 5),
-        })
+
 
         //let currentTint = groundLayer.tint;
         //groundLayer.tint = darken(currentTint, 2.2);
@@ -187,7 +200,7 @@ export default class Player {
           //.setScale(2)
           .setAlpha(0.781)
         // @ts-ignore
-        light.setPosition(bullet.x, bullet.y)//.setVisible(true);
+        light.setPosition(bullet.x, bullet.y)//.setVisible(true);<
 
         bulletImpact.anims.create({
           key: "impact",
@@ -201,8 +214,10 @@ export default class Player {
         });
         bulletImpact.play("impact");
         bulletImpact.setRotation(sprite.rotation);
+
         this.scene.time.delayedCall(400, () => {
           bulletImpact.destroy();
+          light.setVisible(false);
           // @ts-ignore
           //light.destroy();
           this.scene.tweens.add({
@@ -211,9 +226,7 @@ export default class Player {
             radius: 0,
             duration: impactFlickerTime,
             ease: 'Power2',
-            onComplete: () => {
-              light.setVisible(false);
-            }
+
           })
         })
         //@ts-ignore

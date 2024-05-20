@@ -33,6 +33,7 @@ export class Game extends Scene {
   raycaster: any;
   ray: any;
   vignetteFx: Phaser.FX.Vignette;
+  rotateCameraTime: number;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -42,6 +43,7 @@ export class Game extends Scene {
 
   create() {
     this.camera = this.cameras.main;
+    this.rotateCameraTime = 0;
     // this.camera.postFX.addBloom()
     this.camera.setBackgroundColor(0x00ff00);
 
@@ -82,6 +84,7 @@ export class Game extends Scene {
     // @ts-ignore
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
     this.player.sprite.body.setCollideWorldBounds(true);
+
     this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
 
 
@@ -93,8 +96,6 @@ export class Game extends Scene {
     this.createRaycast();
     this.createLights();
     this.createVignette()
-
-
   }
   createLights() {
     this.lights.enable();
@@ -222,6 +223,15 @@ export class Game extends Scene {
   drawIntersections() {
     //clear field of view mask
     this.maskGraphics.clear();
+    //     let radius = 32;
+    //         let intensity = 1;
+    //         let attenuation = 0.5;
+    // // @ts-ignore
+    //         let light = this.add.pointlight(this.player.sprite.x, this.player.sprite.y, 0, radius, intensity);
+    //         light.color.setTo(255, 255, 255);
+    //         light.attenuation=attenuation;
+    //         console.log(light);
+    //     this.maskGraphics.createBitmapMask(light);
     //draw fov mask
     this.maskGraphics.fillPoints(this.intersections);
     this.maskGraphics.fillCircle(this.player.sprite.x, this.player.sprite.y, PLAYER_CONSTANT_LIGHT_CIRCLE)
@@ -243,17 +253,31 @@ export class Game extends Scene {
     this.fow.setPipeline("Light2D");
   }
 
+  // drunk effect
+  rotateCamera(delta: number) {
+    // take player movement into account. vectors?
+    // hotline miami stlye https://www.youtube.com/watch?v=hT-dyANbHDY
+    const isMoving = this.player.sprite.body.velocity.length();
+    if (isMoving) {
+      this.rotateCameraTime += delta;
+      const rotation = Math.sin(this.rotateCameraTime / 3000) * 0.01 * Math.PI;
+      this.camera.setRotation(rotation);
+    }
+  }
+
   update(time: number, delta: number): void {
     this.player.update(time, delta);
+    this.rotateCamera(delta);
     if (this.vignetteFx) {
       // const zto1= Math.sin(time/500)*0.05;
       // this.vignetteFx.x = 0.5+zto1;//this.player.sprite.x/Number(this.game.config.width);
       // this.vignetteFx.y = 0.5+zto1;//this.player.sprite.y/Number(this.game.config.height);
 
       // battery low effect:
-      const zto1= Math.sin(time/5)*0.05;
-      this.vignetteFx.x = 0.5+zto1;//this.player.sprite.x/Number(this.game.config.width);
-      this.vignetteFx.y = 0.5+zto1;//this.player.sprite.y/Number(this.game.config.height);
+      const zto1 = Math.sin(time / 5) * 0.05;
+      this.vignetteFx.x = 0.5 + zto1;//this.player.sprite.x/Number(this.game.config.width);
+      this.vignetteFx.y = 0.5 + zto1;//this.player.sprite.y/Number(this.game.config.height);
+
     }
     this.drawLights();
 
