@@ -233,8 +233,16 @@ export default class Player {
             console.log('enemy hit', enemy, foundEnemy[0]);
             const ec: Enemy = foundEnemy[0];
             //enemy.dieFromBullet();
+            //@ts-ignore
+            this.explosion(ec.sprite);
             ec.destroy();
+            
+            // ----- screen pizzazz ----------
+            // make dependent on zoom
+            this.scene.cameras.main.shake(20, weaponScreenshake);
 
+            // kill bullet
+            bullet.destroy();
           }
         });
 

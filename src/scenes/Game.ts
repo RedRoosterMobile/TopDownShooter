@@ -8,6 +8,7 @@ import Enemy from './Enemy';
 const PLAYER_SPAWN = "Spawn Point";
 const ENEMY = "Enemy";
 const PLAYER_INNER_CONE = 0.45 * Math.PI;
+const INNER_CIRCLE_RADIUS = 16 * 4;
 const PLAYER_CONSTANT_LIGHT_CIRCLE = 7.5; // better make it a (rounded) rectangle??
 const FOV_ALPHA_MAIN = 0.8; // higher is darker: was 0.8
 const INNER_LIGHT_CIRCLE = {
@@ -107,17 +108,15 @@ export class Game extends Scene {
     this.createRaycast();
     this.createLights();
     //this.createVignette()
-    this.createHorrifyFx();
+    //this.createHorrifyFx();
     this.createInput();
   }
 
   createInput() {
-
     // @ts-ignore
     this.keyN = this.input.keyboard ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N) : {};
-    console.log('jdifvbeiwueoubobo', this.keyN, this.input.keyboard);
-    
   }
+
   spawnEnemies() {
     const spawnPointEnemy = this.map.findObject(
       "Objects",
@@ -216,9 +215,10 @@ export class Game extends Scene {
 
     this.raycaster = this.raycasterPlugin.createRaycaster({
       debug: {
-        enabled: false, //enable debug mode
+        enabled: true, //enable debug mode
         maps: true, //enable maps debug
         rays: true, //enable rays debug
+        circle: true,
         graphics: {
           ray: 0x00ff00, //debug ray color; set false to disable
           rayPoint: 0xff00ff, //debug ray point color; set false to disable
@@ -238,7 +238,7 @@ export class Game extends Scene {
 
     //map tilemap layer
     //this.map = this.make.tilemap();
-    console.log(this.mapWalls);
+    // console.log(this.mapWalls);
     // window.gl = this.mapWalls.setCollisionByProperty({ collides: true });
     //this.groundLayer.tileset
 
@@ -279,19 +279,15 @@ export class Game extends Scene {
     // //enable arcade physics body
     this.ray.enablePhysics();
     // //set collision (field of view) range
-    this.ray.setCollisionRange(16 * 3);
-    // //cast ray
-
-
-
+    this.ray.setCollisionRange(INNER_CIRCLE_RADIUS);
 
     //draw rays
     this.drawIntersections();
     // //get objects in field of view
     // visibleObjects = this.ray.overlap(group.getChildren());
 
-    // //check if object is in field of view
-    // visibleObjects = this.ray.overlap(gameObject);
+
+
 
     // //add overlap collider (require passing ray.processOverlap as process callback)
     // this.physics.add.overlap(
@@ -354,7 +350,9 @@ export class Game extends Scene {
 
   update(time: number, delta: number): void {
     this.player.update(time, delta);
-    if (Phaser.Input.Keyboard.JustDown(this.keyN)) {;
+    this.enemies.forEach((enemy) => enemy.update(time, delta))
+    if (Phaser.Input.Keyboard.JustDown(this.keyN)) {
+      ;
       this.spawnEnemies();
     }
     this.rotateCamera(delta);
@@ -372,8 +370,43 @@ export class Game extends Scene {
     this.drawLights();
 
     //get all game objects in field of view (which bodies overlap ray's field of view)
-    //let visibleObjects = this.ray.overlap();
+
+    // check if object is in field of view and inside ring
+    this.enemies.forEach((enemyObj) => {
+      const allObjects = this.ray.overlap();
+      allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
+        if (obj === enemyObj.sprite) {
+          console.log('OVERLAP');
+          // if (enemyObj.sprite.alpha < 1) {
+          //   this.tweens.killTweensOf(enemyObj.sprite);
+          //   enemyObj.sprite.setAlpha(1);
+          // }
+
+          enemyObj.startFlyingTowardsPlayer();
+        } else {
+          console.log('NO OVERLAP');
+          if (enemyObj.sprite.alpha >= 0) {
+            // this.tweens.add({
+            //   targets: enemyObj.sprite,
+            //   alpha: 0,
+            //   duration: 5000,
+            //   ease: 'Power2'
+            // });
+          }
+          //enemyObj.sprite.setVisible(false);
+          enemyObj.startWalking();
+        }
+
+      })
+      // const visibleObjects = this.ray.overlap(enemyObj.sprite);
+      // if (visibleObjects.length) {
+      //   // inner ring!
+      //   // fly towards player
+      //   enemyObj.startFlyingTowardsPlayer();
+      // }
+    })
     //console.log(visibleObjects);
+
   }
 
   drawLights() {

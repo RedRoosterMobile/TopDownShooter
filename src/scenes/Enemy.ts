@@ -1,10 +1,7 @@
 import { Game } from "./Game";
 
-const BULLET_VELOCITY = 250 * 2;
-const SHELL_VELOCITY = 150;
-const SHOOTING_FREQUENCY = 200;
-const weaponScreenshake = 0.00025;
-const weaponKnockback = 50;
+const ENEMY_SPEED = 1;
+const FLYING_COOLDOWN_MS = 1500;
 
 export default class Enemy {
   scene: Game;
@@ -16,6 +13,10 @@ export default class Enemy {
   public nextAngle: number;
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
+  isFlying: boolean;
+  isGrabbing: boolean;
+  isWalking: boolean;
+  flyingCoolDownMs: number;
   /**
    *
    * @param {Game} scene
@@ -25,8 +26,12 @@ export default class Enemy {
   constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
-    this.legs = scene.add
-      .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
+    this.isFlying = false;
+    this.isGrabbing = false;
+    this.isWalking = true;
+    this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
+    // this.legs = scene.add
+    //   .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
@@ -69,28 +74,110 @@ export default class Enemy {
       }),
       repeat: -1
     });
-    this.sprite.play('fly', true);
+    this.sprite.play('wiggle', true);
   }
 
   update(time: number, delta: number) {
-
     const sprite = this.sprite;
+    if (this.isFlying) {
+      this.flyingCoolDownMs -= delta;
+    }
+
+    if (true) {
+      const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
+      let rotation = Phaser.Math.Angle.Between(sprite.x, sprite.y, pointToHere.x, pointToHere.y);
+      sprite.setRotation(rotation);
+      let speed = delta * ENEMY_SPEED; // Set the speed at which the sprite should move
+      // Calculate the velocity in the x and y directions
+      let velocityX = Math.cos(rotation) * speed;
+      let velocityY = Math.sin(rotation) * speed;
+      if (!this.isFlying || !this.isGrabbing) {
+        // Set the velocity of the sprite
+        sprite.setVelocity(velocityX, velocityY);
+      }
 
 
-    // this.legs.play('walk', true);
-    // this.legs.play('idle', true);
+      if (this.isGrabbing) {
+        this.sprite.setAcceleration(0.0);
+        this.sprite.play('wiggle', true);
 
-    this.legs.copyPosition(sprite);
-    this.legs.setRotation(sprite.rotation);
 
+        // this.sprite.setVelocity(0, 0);
+
+        // const delayFactor = 0.025;
+        // // Calculate the new positions with delay
+        // const newX = Phaser.Math.Linear(
+        //   this.sprite.x,
+        //   this.scene.player.sprite.x,
+        //   delayFactor
+        // );
+        // const newY = Phaser.Math.Linear(
+        //   this.sprite.y,
+        //   this.scene.player.sprite.y,
+        //   delayFactor
+        // );
+        // this.sprite.setPosition(newX, newY);
+      }
+
+
+    }
+
+  }
+
+  startWalking() {
+    this.isGrabbing = false;
+    this.isWalking = true;
+    this.isFlying = false;
+    if (this.sprite) {
+      this.sprite.play('wiggle', true);
+    }
+  }
+
+  startGrabbingPlayer() {
+    //
+    this.isGrabbing = true;
+    this.isWalking = false;
+    this.isFlying = false;
+    if (this.sprite) {
+      this.sprite.play('wiggle', true);
+    }
+  }
+
+  startFlyingTowardsPlayer() {
+    this.isGrabbing = false;
+    this.isWalking = false;
+    this.isFlying = true;
+
+    if (this.flyingCoolDownMs <= 0) {
+      this.sprite.play('fly', true);
+      this.sprite.setVelocity(0, 0);
+
+      this.scene.tweens.add({
+        targets: this.sprite,
+        x: this.scene.player.sprite.x,
+        y: this.scene.player.sprite.y,
+        ease: 'Power2',
+        duration: 500,
+        repeat: 0,
+        onComplete: () => {
+          // start grabbing
+          this.startGrabbingPlayer();
+          this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
+        }
+      })
+    }
   }
 
 
   destroy() {
     console.log('destroy enemy');
     //this.scene.events.destroy();
-    this.legs.destroy();
+    // this.legs.destroy();
     // this.sprite.anims.destroy();
+    this.scene.tweens.killTweensOf(this.sprite);
+    this.isGrabbing = false;
+    this.isWalking = false;
+    this.isFlying = false;
     this.sprite.destroy();
   }
 }
