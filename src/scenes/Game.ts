@@ -191,6 +191,7 @@ export class Game extends Scene {
     this.lights.setAmbientColor(INNER_LIGHT_CIRCLE.color);
 
     this.light = this.createLight();
+    this.light.setPosition(300,300);
     // @ts-ignore
     // window.ll = this.light;
   }
@@ -198,6 +199,7 @@ export class Game extends Scene {
   public createLight(): Phaser.GameObjects.Light {
     const light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
     light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
+    
     return light
   }
 
@@ -432,6 +434,7 @@ export class Game extends Scene {
     //cast ray in all directions
     this.ray.setCone(PLAYER_INNER_CONE);
     this.light.setPosition(newX, newY);
+    this.light.setColor(0xaaaaaa)
 
     // cast rays in a cone
     this.intersections = this.ray.castCone();

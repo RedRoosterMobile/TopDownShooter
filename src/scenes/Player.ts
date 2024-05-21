@@ -235,11 +235,11 @@ export default class Player {
       .setIntensity(0)
       .setRadius(0);
     // make light fly along
-    // this.timerEvent = this.scene.time.addEvent({
-    //   delay: 50,
-    //   callback: () => { light.setPosition(bullet.x, bullet.y) },
-    //   loop: true
-    // });
+    const timerEvent = this.scene.time.addEvent({
+      delay: 50,
+      callback: () => { light.setPosition(bullet.x, bullet.y) },
+      loop: true
+    });
 
     const impactFlickerTime = 5;
     this.scene.tweens.add({
@@ -272,9 +272,11 @@ export default class Player {
             // ----- screen pizzazz ----------
             // make dependent on zoom
             this.scene.cameras.main.shake(20, weaponScreenshake);
-
+            timerEvent.destroy();
             // kill bullet
             _bullet.destroy();
+            console.log('kill light');
+            light.setVisible(false);
           }
         });
 
@@ -304,7 +306,7 @@ export default class Player {
           //.setScale(2)
           .setAlpha(0.781)
         // @ts-ignore
-        light.setPosition(bullet.x, bullet.y)//.setVisible(true);<
+        //light.setPosition(bullet.x, bullet.y)//.setVisible(true);<
 
         bulletImpact.anims.create({
           key: "impact",
@@ -321,7 +323,7 @@ export default class Player {
 
         this.scene.time.delayedCall(400, () => {
           bulletImpact.destroy();
-          light.setVisible(false);
+          
           // @ts-ignore
           //light.destroy();
           this.scene.tweens.add({
@@ -335,10 +337,13 @@ export default class Player {
         })
         //@ts-ignore
         this.explosion(bullet);
+        timerEvent.destroy();
         // ----- screen pizzazz ----------
         // make dependent on zoom
         this.scene.cameras.main.shake(20, weaponScreenshake);
 
+        console.log('kill light');
+          light.setVisible(false);
         // kill bullet
         bullet.destroy();
       }
