@@ -80,7 +80,7 @@ export default class Enemy {
     });
     this.sprite.anims.create({
       key: "die_bullet",
-      frameRate: 10,
+      frameRate: 15,
       frames: this.sprite.anims.generateFrameNames("enemy", {
         start: 5,
         end: 12,
@@ -190,6 +190,9 @@ export default class Enemy {
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
     this.sprite.play('die_bullet', true);
+    const randomSlowdown=Phaser.Math.FloatBetween(0.2,1);
+    this.sprite.body.velocity.x*=randomSlowdown;
+    this.sprite.body.velocity.y*=randomSlowdown;
     const normalizedVector = bulletVector.normalize();
     const emitter = this.scene.add.particles(0, 0, 'sprites', {
       // @ts-ignore
@@ -201,8 +204,8 @@ export default class Enemy {
       speed: { min: 20, max: 35 },
       scale: { min: 0.5, max: 1 },
       rotate: { min: 0, max: 90 },
-      gravityX: normalizedVector.x * 1000,
-      gravityY: normalizedVector.y * 1000,
+      gravityX: normalizedVector.x * 1000*randomSlowdown,
+      gravityY: normalizedVector.y * 1000*randomSlowdown,
 
     }).setPosition(this.sprite.x, this.sprite.y);
     this.scene.time.delayedCall(200, () => {
