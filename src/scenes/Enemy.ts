@@ -169,6 +169,30 @@ export default class Enemy {
   }
 
 
+  dieFromBullet(bulletVector: Phaser.Math.Vector2) {
+
+    const normalizedVector = bulletVector.normalize();
+    const emitter = this.scene.add.particles(0, 0, 'sprites', {
+      // @ts-ignore
+      frame: ['tile_blood_16_0.png', 'tile_blood_16_1.png', 'tile_blood_16_2.png', 'tile_blood_16_3.png'],
+
+      //3 
+      lifespan: 200,
+      speed: { min: 200, max: 350 },
+      scale: { min: 0.5, max: 1 },
+      rotate: { min: 0, max: 90 },
+      gravityX: normalizedVector.x * 10000,
+      gravityY: normalizedVector.y * 10000,
+
+    }).setPosition(this.sprite.x, this.sprite.y);
+    this.scene.time.delayedCall(200, () => {
+      emitter.stop();
+      this.destroy();
+    })
+
+  }
+
+
   destroy() {
     console.log('destroy enemy');
     //this.scene.events.destroy();

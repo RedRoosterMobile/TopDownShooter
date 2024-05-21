@@ -7,6 +7,10 @@ const SHOOTING_FREQUENCY = 200;
 const weaponScreenshake = 0.00025;
 const weaponKnockback = 50;
 
+const DEBUG_CIRCLES = true;
+const INNER_CIRCLE_RADIUS = 50;
+const OUTER_CIRCLE_RADIUS = 100;
+
 export default class Player {
   scene: Game;
   collisionLayer: Phaser.Tilemaps.TilemapLayer;
@@ -18,6 +22,7 @@ export default class Player {
   allowShooting: boolean;
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
+  innerCircleGaphics: Phaser.GameObjects.Graphics;
   /**
    *
    * @param {Game} scene
@@ -47,6 +52,17 @@ export default class Player {
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
       Phaser.Input.Keyboard.KeyCodes;
 
+    if (DEBUG_CIRCLES) {
+      this.innerCircleGaphics = this.scene.add.graphics({
+        lineStyle: { color: 0xffffff, alpha: 1, width: 2 },
+        fillStyle: { color: 0xffffff, alpha: 1, }
+      });
+
+      this.drawCircle(INNER_CIRCLE_RADIUS);
+      this.drawCircle(OUTER_CIRCLE_RADIUS);
+    }
+
+
     this.keys = scene.input.keyboard ? scene.input.keyboard.addKeys({
       left: LEFT,
       right: RIGHT,
@@ -59,6 +75,10 @@ export default class Player {
     }) : {};
 
     this.createAnimations();
+  }
+
+  drawCircle(radius: number) {
+    this.innerCircleGaphics.strokeCircle(this.sprite.x, this.sprite.y, radius);
   }
 
   createAnimations() {
@@ -149,7 +169,11 @@ export default class Player {
     }
     this.legs.copyPosition(sprite);
     this.legs.setRotation(sprite.rotation);
-
+    if (DEBUG_CIRCLES) {
+      this.innerCircleGaphics.clear();
+      this.drawCircle(INNER_CIRCLE_RADIUS);
+      this.drawCircle(OUTER_CIRCLE_RADIUS);
+    }
   }
 
   // normalizedDistance(sprite, shell) {
@@ -222,7 +246,7 @@ export default class Player {
       this.scene.physics.world.addCollider(
         bullet,
         enemyObj.sprite,
-        (bullet, enemy) => {
+        (_bullet, enemy) => {
           // find enemy in enemies
           const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
 
@@ -232,17 +256,17 @@ export default class Player {
 
             console.log('enemy hit', enemy, foundEnemy[0]);
             const ec: Enemy = foundEnemy[0];
-            //enemy.dieFromBullet();
+            ec.dieFromBullet(bullet.body.velocity.clone());
             //@ts-ignore
             this.explosion(ec.sprite);
-            ec.destroy();
-            
+            // ec.destroy();
+
             // ----- screen pizzazz ----------
             // make dependent on zoom
             this.scene.cameras.main.shake(20, weaponScreenshake);
 
             // kill bullet
-            bullet.destroy();
+            _bullet.destroy();
           }
         });
 

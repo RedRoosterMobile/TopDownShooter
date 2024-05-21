@@ -108,7 +108,7 @@ export class Game extends Scene {
     this.createRaycast();
     this.createLights();
     //this.createVignette()
-    //this.createHorrifyFx();
+    this.createHorrifyFx();
     this.createInput();
   }
 
@@ -215,7 +215,7 @@ export class Game extends Scene {
 
     this.raycaster = this.raycasterPlugin.createRaycaster({
       debug: {
-        enabled: true, //enable debug mode
+        enabled: false, //enable debug mode
         maps: true, //enable maps debug
         rays: true, //enable rays debug
         circle: true,
@@ -377,23 +377,25 @@ export class Game extends Scene {
       allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
         if (obj === enemyObj.sprite) {
           console.log('OVERLAP');
-          // if (enemyObj.sprite.alpha < 1) {
-          //   this.tweens.killTweensOf(enemyObj.sprite);
-          //   enemyObj.sprite.setAlpha(1);
-          // }
+          if (enemyObj.sprite.alpha < 1) {
+            //this.tweens.killTweensOf(enemyObj.sprite);
+            enemyObj.sprite.setAlpha(1);
+          }
 
           enemyObj.startFlyingTowardsPlayer();
         } else {
           console.log('NO OVERLAP');
-          if (enemyObj.sprite.alpha >= 0) {
+          if (enemyObj.sprite.alpha >= 0.5) {
             // this.tweens.add({
             //   targets: enemyObj.sprite,
             //   alpha: 0,
             //   duration: 5000,
             //   ease: 'Power2'
             // });
+            enemyObj.sprite.setAlpha(.5);
           }
-          //enemyObj.sprite.setVisible(false);
+
+          
           enemyObj.startWalking();
         }
 
