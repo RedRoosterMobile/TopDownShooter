@@ -94,6 +94,7 @@ export default class Enemy {
 
   update(time: number, delta: number) {
     if (this.isDead) {
+      this.sprite.play('die_bullet', true);
       return;
     }
     const sprite = this.sprite;
