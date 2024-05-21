@@ -387,7 +387,7 @@ export class Game extends Scene {
             //   duration: 5000,
             //   ease: 'Power2'
             // });
-            enemyObj.sprite.setAlpha(.5);
+            //enemyObj.sprite.setAlpha(.5);
           }
 
 

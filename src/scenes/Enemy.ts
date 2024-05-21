@@ -17,6 +17,7 @@ export default class Enemy {
   isGrabbing: boolean;
   isWalking: boolean;
   flyingCoolDownMs: number;
+  isDead: boolean;
   /**
    *
    * @param {Game} scene
@@ -74,10 +75,24 @@ export default class Enemy {
       }),
       repeat: -1
     });
-    this.sprite.play('wiggle', true);
+    this.sprite.anims.create({
+      key: "die_bullet",
+      frameRate: 10,
+      frames: this.sprite.anims.generateFrameNames("enemy", {
+        start: 5,
+        end: 12,
+        prefix: "enemy",
+        suffix: ".png"
+      }),
+      repeat: 0
+    });
+    this.sprite.play('die_bullet', true);
   }
 
   update(time: number, delta: number) {
+    if (this.isDead) {
+      return;
+    }
     const sprite = this.sprite;
     if (this.isFlying) {
       this.flyingCoolDownMs -= delta;
@@ -170,6 +185,8 @@ export default class Enemy {
 
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
+    this.isDead = true;
+    this.sprite.play('die_bullet', true);
     const normalizedVector = bulletVector.normalize();
     const emitter = this.scene.add.particles(0, 0, 'sprites', {
       // @ts-ignore
@@ -177,7 +194,7 @@ export default class Enemy {
 
       //3 
       lifespan: 200,
-      maxParticles:5,
+      maxParticles: 5,
       speed: { min: 20, max: 35 },
       scale: { min: 0.5, max: 1 },
       rotate: { min: 0, max: 90 },
@@ -187,7 +204,8 @@ export default class Enemy {
     }).setPosition(this.sprite.x, this.sprite.y);
     this.scene.time.delayedCall(200, () => {
       emitter.stop();
-      this.destroy();
+      this.sprite.body.destroy();
+      //this.destroy();
     })
 
   }
