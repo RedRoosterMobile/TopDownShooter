@@ -12,7 +12,6 @@ export default class Enemy {
   public offset: number;
   public nextAngle: number;
   timerEvent: Phaser.Time.TimerEvent;
-  legs: Phaser.GameObjects.Sprite;
   isFlying: boolean;
   isGrabbing: boolean;
   isWalking: boolean;
@@ -31,15 +30,19 @@ export default class Enemy {
     this.isGrabbing = false;
     this.isWalking = true;
     this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
-    // this.legs = scene.add
-    //   .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
 
+    const array = [0xaaaaaa, 0x99a9a9, 0x988888, 0x777777];
+    //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
+    const randomTint = Phaser.Utils.Array.GetRandom(array);
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
       .sprite(x, y, "enemy", "enemy1.png")
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
-      .setMaxVelocity(300, 10000);
+      .setMaxVelocity(300, 10000)
+      .setScale(Phaser.Math.FloatBetween(1, 1.5))
+      .setTint(randomTint)
+
     const width = this.sprite.width;
     const newWidth = width * 0.35;
     const diff = width - newWidth;
@@ -177,9 +180,9 @@ export default class Enemy {
         onComplete: () => {
           // start grabbing
           this.startGrabbingPlayer();
-          this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
         }
       })
+      this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
     }
   }
 
@@ -205,6 +208,7 @@ export default class Enemy {
     this.scene.time.delayedCall(200, () => {
       emitter.stop();
       this.sprite.body.destroy();
+      // TODO: blood sprite??
       //this.destroy();
     })
 

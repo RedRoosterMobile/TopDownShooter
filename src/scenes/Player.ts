@@ -41,6 +41,7 @@ export default class Player {
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
+
     const width = this.sprite.width;
     const newWidth = width * 0.35;
     const diff = width - newWidth;
@@ -266,7 +267,7 @@ export default class Player {
             const ec: Enemy = foundEnemy[0];
             ec.dieFromBullet(bullet.body.velocity.clone());
             //@ts-ignore
-            this.explosion(ec.sprite);
+            //this.explosion(ec.sprite);
             // ec.destroy();
 
             // ----- screen pizzazz ----------
@@ -323,7 +324,7 @@ export default class Player {
 
         this.scene.time.delayedCall(400, () => {
           bulletImpact.destroy();
-          
+
           // @ts-ignore
           //light.destroy();
           this.scene.tweens.add({
@@ -343,7 +344,7 @@ export default class Player {
         this.scene.cameras.main.shake(20, weaponScreenshake);
 
         console.log('kill light');
-          light.setVisible(false);
+        light.setVisible(false);
         // kill bullet
         bullet.destroy();
       }
