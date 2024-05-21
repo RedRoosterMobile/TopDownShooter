@@ -11,10 +11,13 @@ const PLAYER_INNER_CONE = 0.45 * Math.PI;
 const INNER_CIRCLE_RADIUS = 16 * 4;
 const PLAYER_CONSTANT_LIGHT_CIRCLE = 7.5; // better make it a (rounded) rectangle??
 const FOV_ALPHA_MAIN = 0.8; // higher is darker: was 0.8
-const INNER_LIGHT_CIRCLE = {
-  intensity: 2,
+
+
+const FLOOR_LIGHT_TINT = {
+  intensity: 1,
   //color: 0xff0000, 
   color: 0x808080,
+  lightColor: 0xaaaaaa,
   radius: 200
 };
 
@@ -50,13 +53,11 @@ export class Game extends Scene {
   create() {
     this.camera = this.cameras.main;
     this.rotateCameraTime = 0;
-    // this.camera.postFX.addBloom()
     this.camera.setBackgroundColor(0x00ff00);
 
     this.background = this.add.image(512, 384, 'background');
     this.background.setAlpha(0.5);
     this.enemies = [];
-
 
     // this.msg_text = this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
     //   fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
@@ -92,13 +93,7 @@ export class Game extends Scene {
     // @ts-ignore
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
     this.player.sprite.body.setCollideWorldBounds(true);
-
-
-
     this.spawnEnemies();
-
-    ;
-
 
     // @ts-ignore
     this.physics.world.addCollider(this.player.sprite, this.mapWalls);
@@ -154,12 +149,10 @@ export class Game extends Scene {
     this.time.addEvent({
       delay: 50,
       // @ts-ignore
-      callback: (arg1, arg2, arg3) => {
+      callback: () => {
         scanlineTime += 50;
-
-
         // @ts-ignore
-        pipeline.setScanStrength(horrifySettings.scanlineStrength + Math.sin(scanlineTime / 100) * 0.025)
+        pipeline.setScanStrength(0.025 + horrifySettings.scanlineStrength + Math.sin(scanlineTime / 100) * 0.025)
       },
       loop: true
     });
@@ -188,18 +181,18 @@ export class Game extends Scene {
     this.lights.enable();
 
     //this.lights.setAmbientColor(0x808080);
-    this.lights.setAmbientColor(INNER_LIGHT_CIRCLE.color);
+    this.lights.setAmbientColor(FLOOR_LIGHT_TINT.color);
 
     this.light = this.createLight();
-    this.light.setPosition(300,300);
+    this.light.setPosition(300, 300);
     // @ts-ignore
     // window.ll = this.light;
   }
 
   public createLight(): Phaser.GameObjects.Light {
-    const light = this.lights.addLight(0, 0, INNER_LIGHT_CIRCLE.radius);
-    light.setIntensity(INNER_LIGHT_CIRCLE.intensity);
-    
+    const light = this.lights.addLight(0, 0, FLOOR_LIGHT_TINT.radius);
+    light.setIntensity(FLOOR_LIGHT_TINT.intensity);
+
     return light
   }
 
@@ -397,7 +390,7 @@ export class Game extends Scene {
             enemyObj.sprite.setAlpha(.5);
           }
 
-          
+
           enemyObj.startWalking();
         }
 
@@ -434,7 +427,7 @@ export class Game extends Scene {
     //cast ray in all directions
     this.ray.setCone(PLAYER_INNER_CONE);
     this.light.setPosition(newX, newY);
-    this.light.setColor(0xaaaaaa)
+    this.light.setColor(FLOOR_LIGHT_TINT.lightColor);
 
     // cast rays in a cone
     this.intersections = this.ray.castCone();
