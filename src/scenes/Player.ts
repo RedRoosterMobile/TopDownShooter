@@ -42,6 +42,9 @@ export default class Player {
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
 
+    this.legs.setDepth(1);
+    this.sprite.setDepth(1);
+
     const width = this.sprite.width;
     const newWidth = width * 0.35;
     const diff = width - newWidth;
@@ -57,7 +60,7 @@ export default class Player {
       this.innerCircleGaphics = this.scene.add.graphics({
         lineStyle: { color: 0xffffff, alpha: 1, width: 2 },
         fillStyle: { color: 0xffffff, alpha: 1, }
-      });
+      }).setDepth(1);;
 
       this.drawCircle(INNER_CIRCLE_RADIUS);
       this.drawCircle(OUTER_CIRCLE_RADIUS);
@@ -260,12 +263,23 @@ export default class Player {
           const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
 
           if (foundEnemy.length) {
-            // filter found one
-            this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
-
             console.log('enemy hit', enemy, foundEnemy[0]);
+
             const ec: Enemy = foundEnemy[0];
-            ec.dieFromBullet(bullet.body.velocity.clone());
+
+            // maybe better if not within a certain distance from player
+            const distance = Phaser.Math.Distance.BetweenPoints(ec.sprite, this.sprite)
+            console.log(distance);
+            if (distance > 20) {
+              // special case
+              ec.dieFromBullet(bullet.body.velocity.clone());
+              // filter found one
+              this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
+            }
+            console.log('destory ullets#############################');
+
+            // kill bullet
+            bullet.destroy();
             //@ts-ignore
             //this.explosion(ec.sprite);
             // ec.destroy();
@@ -274,8 +288,7 @@ export default class Player {
             // make dependent on zoom
             this.scene.cameras.main.shake(20, weaponScreenshake);
             timerEvent.destroy();
-            // kill bullet
-            _bullet.destroy();
+
             console.log('kill light');
             light.setVisible(false);
           }
