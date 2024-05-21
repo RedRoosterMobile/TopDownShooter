@@ -43,6 +43,7 @@ export class Game extends Scene {
   rotateCameraTime: number;
   enemies: Array<Enemy>;
   keyN: Phaser.Input.Keyboard.Key;
+  mapFloor: Phaser.Tilemaps.TilemapLayer;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -76,7 +77,7 @@ export class Game extends Scene {
       "tiles"
     );
     // @ts-ignore
-    const mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
+    this.mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
@@ -118,7 +119,7 @@ export class Game extends Scene {
       (obj) => obj.name === ENEMY
     );
     // @ts-ignore
-    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls)
+    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor)
     this.enemies.push(enemy);
   }
   createHorrifyFx() {

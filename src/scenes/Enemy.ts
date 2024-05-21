@@ -1,4 +1,5 @@
 import { Game } from "./Game";
+import { TilePainter } from "./classes/TilePainter";
 
 const ENEMY_SPEED = 1;
 const FLYING_COOLDOWN_MS = 1500;
@@ -17,19 +18,22 @@ export default class Enemy {
   isWalking: boolean;
   flyingCoolDownMs: number;
   isDead: boolean;
+  lastFloorTile: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody;
+  tilePainter: TilePainter;
   /**
    *
    * @param {Game} scene
    * @param {*} x
    * @param {*} y
    */
-  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
+  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
     this.isFlying = false;
     this.isGrabbing = false;
     this.isWalking = true;
     this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
+    this.tilePainter = new TilePainter(this.scene, "sprites");
 
     const array = [0xaaaaaa, 0x99a9a9, 0x988888, 0x777777];
     //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
@@ -51,6 +55,9 @@ export default class Enemy {
 
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
     this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
+    this.scene.physics.world.addOverlap(this.sprite, floorLayer,(_,floor)=>{
+      this.lastFloorTile = floor;
+    });
 
     this.createAnimations();
   }
@@ -190,6 +197,7 @@ export default class Enemy {
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
+    this.tilePainter.paintTile(this.lastFloorTile as Phaser.Tilemaps.Tile);
     this.sprite.play('die_bullet', true);
     const randomSlowdown = Phaser.Math.FloatBetween(0.2, 1);
     this.sprite.body.velocity.x *= randomSlowdown;
