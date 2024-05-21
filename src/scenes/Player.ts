@@ -174,7 +174,15 @@ export default class Player {
       this.drawCircle(INNER_CIRCLE_RADIUS);
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
+
+    // imsgine a point at a distance in front of the player
+    var offsetX = Math.cos(sprite.rotation) * 50 * -1;
+    var offsetY = Math.sin(sprite.rotation) * 50 * -1;
+    this.scene.cameras.main.setFollowOffset(offsetX, offsetY);
   }
+
+
+
 
   // normalizedDistance(sprite, shell) {
   //   const distance = Phaser.Math.Distance.Between(

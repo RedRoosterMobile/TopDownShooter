@@ -170,7 +170,6 @@ export default class Enemy {
 
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
-
     const normalizedVector = bulletVector.normalize();
     const emitter = this.scene.add.particles(0, 0, 'sprites', {
       // @ts-ignore
@@ -178,11 +177,12 @@ export default class Enemy {
 
       //3 
       lifespan: 200,
-      speed: { min: 200, max: 350 },
+      maxParticles:5,
+      speed: { min: 20, max: 35 },
       scale: { min: 0.5, max: 1 },
       rotate: { min: 0, max: 90 },
-      gravityX: normalizedVector.x * 10000,
-      gravityY: normalizedVector.y * 10000,
+      gravityX: normalizedVector.x * 1000,
+      gravityY: normalizedVector.y * 1000,
 
     }).setPosition(this.sprite.x, this.sprite.y);
     this.scene.time.delayedCall(200, () => {

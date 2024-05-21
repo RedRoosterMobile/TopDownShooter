@@ -97,13 +97,13 @@ export class Game extends Scene {
 
     this.spawnEnemies();
 
-    this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
+    ;
 
 
     // @ts-ignore
     this.physics.world.addCollider(this.player.sprite, this.mapWalls);
 
-    this.cameras.main.startFollow(this.player.sprite, true, 0.05, 0.05);
+    this.cameras.main.startFollow(this.player.sprite, true, 0.025, 0.025);
 
     this.createRaycast();
     this.createLights();
