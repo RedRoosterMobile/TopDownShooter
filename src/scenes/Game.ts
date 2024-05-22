@@ -149,7 +149,6 @@ export class Game extends Scene {
     );
     // @ts-ignore
     const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor)
-    // fixme: this array will go to infinity and beyond!
     this.enemies.push(enemy);
     this.enemyId++;
     enemy.id = this.enemyId;

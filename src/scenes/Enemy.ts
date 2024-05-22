@@ -271,7 +271,7 @@ export default class Enemy {
 
     }).setPosition(this.sprite.x, this.sprite.y);
     this.scene.time.delayedCall(200, () => {
-      this.sprite.play('die_bullet', true);
+      this.sprite.play('die_bullet', Phaser.Math.FloatBetween(0, 1) > 0.75 ? true : false);
       emitter.stop();
       graphics.lineTo(this.sprite.x + Phaser.Math.Between(-15, 15), this.sprite.y + Phaser.Math.Between(-1, 1));
       //graphics.strokeCircle(this.sprite.x + (odds % 2 ? -5 : 5), this.sprite.y + (odds % 2 ? -5 : 5), 5);
