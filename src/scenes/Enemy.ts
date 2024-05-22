@@ -1,3 +1,4 @@
+import { C_SPATIAL_AUDIO } from "./Constants";
 import { Game } from "./Game";
 import { TilePainter } from "./classes/TilePainter";
 
@@ -20,6 +21,8 @@ export default class Enemy {
   isDead: boolean;
   lastFloorTile: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody;
   tilePainter: TilePainter;
+  timeToNextGroan: number;
+  id: number;
   /**
    *
    * @param {Game} scene
@@ -34,6 +37,7 @@ export default class Enemy {
     this.isWalking = true;
     this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
     this.tilePainter = new TilePainter(this.scene, "sprites");
+    this.timeToNextGroan = 1000;
 
     const array = [0xaaaaaa, 0x99a9a9, 0x988888, 0x777777];
     //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
@@ -104,12 +108,34 @@ export default class Enemy {
       this.sprite.play('die_bullet', true);
       return;
     }
+
     const sprite = this.sprite;
     if (this.isFlying) {
       this.flyingCoolDownMs -= delta;
     }
 
-    if (true) {
+
+    const normalSituation = true; // aka walking???
+    if (normalSituation) {
+      this.timeToNextGroan -= delta;
+      if (this.timeToNextGroan <= 0) {
+        // new random next groan
+        
+        this.timeToNextGroan = Phaser.Math.Between(1000, 2000);
+        console.log(this.timeToNextGroan, 'GROOOOOAAN!'+this.timeToNextGroan);
+
+        // only do this if:
+        // wait...
+        this.scene.sound.play("zombie", {
+          rate: Phaser.Math.FloatBetween(0.7, 1),
+          detune: Phaser.Math.FloatBetween(0, 50),
+          source: {
+            x: this.sprite.x,
+            y: this.sprite.y,
+            ...C_SPATIAL_AUDIO
+          }
+        });
+      }
       const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
       let rotation = Phaser.Math.Angle.Between(sprite.x, sprite.y, pointToHere.x, pointToHere.y);
       sprite.setRotation(rotation);
@@ -197,10 +223,14 @@ export default class Enemy {
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
-
     this.scene.sound.play("explodeBody", {
       rate: Phaser.Math.FloatBetween(0.7, 1),
-      detune: Phaser.Math.FloatBetween(0, 50)
+      detune: Phaser.Math.FloatBetween(0, 50),
+      source: {
+        x: this.sprite.x,
+        y: this.sprite.y,
+        ...C_SPATIAL_AUDIO
+      }
     });
     this.tilePainter.paintTile(this.lastFloorTile as Phaser.Tilemaps.Tile);
     this.sprite.play('die_bullet', true);

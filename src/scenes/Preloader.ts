@@ -34,6 +34,7 @@ export class Preloader extends Scene {
 
 
     this.load.audio('music','music.m4a');
+    this.load.audio('zombie','audio/zombie.m4a');
     this.load.audio("explodeBody", "audio/sndGoreSplash.mp3");
     this.load.audio("shells", "audio/sndShells.m4a");
     this.load.audio("shoot", "audio/sndFireBass.wav");

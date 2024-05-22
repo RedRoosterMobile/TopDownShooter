@@ -1,3 +1,4 @@
+import { C_SPATIAL_AUDIO } from "./Constants";
 import Enemy from "./Enemy";
 import { Game } from "./Game";
 
@@ -211,7 +212,12 @@ export default class Player {
 
     this.allowShooting = false;
     this.scene.sound.play("shoot", {
-      rate: Phaser.Math.FloatBetween(0.9, 1.1)
+      rate: Phaser.Math.FloatBetween(0.9, 1.1),
+      source: {
+        x: sprite.x,
+        y: sprite.y,
+        ...C_SPATIAL_AUDIO
+      }
     });
     // ----- bullet ----------
     const bulletScale = 0.5;
@@ -268,6 +274,7 @@ export default class Player {
           const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
 
           if (foundEnemy.length) {
+            
             console.log('enemy hit', enemy, foundEnemy[0]);
 
             const ec: Enemy = foundEnemy[0];
@@ -279,7 +286,8 @@ export default class Player {
               // special case
               ec.dieFromBullet(bullet.body.velocity.clone());
               // filter found one
-              this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
+               this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
+              //this.scene.enemies = this.scene.enemies.filter((_enemy) => enemyObj.id !== _enemy.id)
             }
             console.log('destory ullets#############################');
 
@@ -363,8 +371,16 @@ export default class Player {
 
         console.log('kill light');
         light.setVisible(false);
+
         this.scene.sound.play("explosion", {
-          rate: Phaser.Math.FloatBetween(0.5, 1)
+          rate: Phaser.Math.FloatBetween(0.5, 1),
+          source: {
+            // @ts-ignore
+            x: bullet.x,
+            // @ts-ignore
+            y: bullet.y,
+            ...C_SPATIAL_AUDIO
+          }
         });
         // kill bullet
         bullet.destroy();
@@ -380,11 +396,7 @@ export default class Player {
       .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
     //.setAngle(Phaser.Math.Between(0, 9));
 
-    this.scene.sound.play("shells", {
-      rate: Phaser.Math.FloatBetween(0.95, 1.05),
-      // @ts-ignore
-      cents: Phaser.Math.FloatBetween(0, 50)
-    });
+
     shell.body.setSize(shell.displayWidth * 0.1, shell.displayHeight * 0.1);
 
     // maybe cooler to fly to the side in a curve?
@@ -401,6 +413,16 @@ export default class Player {
       (_, groundLayer) => {
         // When the shell hits the ground, stop its horizontal movement
         //shell.body.setVelocityX(Math.max(shell.body.velocity.x - 20, 0));
+        this.scene.sound.play("shells", {
+          rate: Phaser.Math.FloatBetween(0.95, 1.05),
+          // @ts-ignore
+          cents: Phaser.Math.FloatBetween(0, 50),
+          source: {
+            x: shell.x,
+            y: shell.y,
+            ...C_SPATIAL_AUDIO
+          }
+        });
       }
     );
 
@@ -456,7 +478,12 @@ export default class Player {
     });
     bulletExplosionOnGround.play("explosion");
     this.scene.sound.play("explosion", {
-      rate: Phaser.Math.FloatBetween(0.5, 1)
+      rate: Phaser.Math.FloatBetween(0.5, 1),
+      source: {
+        x: bullet.x,
+        y: bullet.y,
+        ...C_SPATIAL_AUDIO
+      }
     });
 
     // this.scene.sound.play("explosion", {

@@ -55,7 +55,11 @@ export class Game extends Scene {
 
   create() {
     this.music = this.sound.add('music', { loop: true }) as Phaser.Sound.WebAudioSound;
-this.music.play();
+    this.music.play({
+      loop: true,
+      // needed to hear music
+      source: { refDistance: 10000, }
+    });
 
     this.camera = this.cameras.main;
     this.rotateCameraTime = 0;
@@ -105,6 +109,8 @@ this.music.play();
     console.log(spawnPoint);
     // @ts-ignore
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
+    // @ts-ignore
+    this.sound.setListenerPosition(spawnPoint.x, spawnPoint.y);
     this.player.sprite.body.setCollideWorldBounds(true);
     this.spawnEnemies();
 
@@ -141,7 +147,9 @@ this.music.play();
     );
     // @ts-ignore
     const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor)
+    // fixme: this array will go to infinity and beyond!
     this.enemies.push(enemy);
+    enemy.id = this.enemies.length;
   }
   createHorrifyFx() {
     const horrifySettings = {
@@ -367,6 +375,7 @@ this.music.play();
 
   update(time: number, delta: number): void {
     this.player.update(time, delta);
+    this.sound.listenerPosition.set(this.player.sprite.x, this.player.sprite.y);
     this.enemies.forEach((enemy) => enemy.update(time, delta))
     if (Phaser.Input.Keyboard.JustDown(this.keyN)) {
       ;
