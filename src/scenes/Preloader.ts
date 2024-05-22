@@ -15,6 +15,7 @@ export class Preloader extends Scene {
     //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
     const bar = this.add.rectangle(512 - 230, 384, 4, 28, 0xffffff);
 
+
     //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
     this.load.on('progress', (progress: number) => {
 
@@ -25,10 +26,15 @@ export class Preloader extends Scene {
   }
 
   preload() {
+    
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets');
 
+
     this.load.image('logo', 'logo.png');
+
+
+    this.load.audio('music','music.m4a');
 
     // load tilemaps / sets and level
     this.load.image(

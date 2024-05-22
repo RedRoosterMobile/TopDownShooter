@@ -55,7 +55,7 @@ export default class Enemy {
 
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
     this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
-    this.scene.physics.world.addOverlap(this.sprite, floorLayer,(_,floor)=>{
+    this.scene.physics.world.addOverlap(this.sprite, floorLayer, (_, floor) => {
       this.lastFloorTile = floor;
     });
 
@@ -203,6 +203,24 @@ export default class Enemy {
     this.sprite.body.velocity.x *= randomSlowdown;
     this.sprite.body.velocity.y *= randomSlowdown;
     const normalizedVector = bulletVector.normalize();
+
+    const graphics = this.scene.add.graphics({
+      lineStyle: { width: 5, color: 0xaa0000, alpha: 0.1 },
+      fillStyle: { color: 0x00ff00, alpha: 0.1 }
+    });
+    graphics.beginPath();
+    graphics.moveTo(this.sprite.x, this.sprite.y);
+    let odds = 0;
+    this.scene.time.addEvent
+    const timerEvent = this.scene.time.addEvent({
+      delay: 30,
+      callback: () => {
+        graphics.lineTo(this.sprite.x + (odds % 2 ? -5 : 5), this.sprite.y + (odds % 2 ? -1 : 1)); odds++;
+        //graphics.strokeCircle(this.sprite.x + (odds % 2 ? -5 : 5), this.sprite.y + (odds % 2 ? -5 : 5), 5);
+      },
+      loop: true
+    });
+
     const emitter = this.scene.add.particles(0, 0, 'sprites', {
       // @ts-ignore
       frame: ['tile_blood_16_0.png', 'tile_blood_16_1.png', 'tile_blood_16_2.png', 'tile_blood_16_3.png'],
@@ -220,7 +238,20 @@ export default class Enemy {
     this.scene.time.delayedCall(200, () => {
       this.sprite.play('die_bullet', true);
       emitter.stop();
+      graphics.lineTo(this.sprite.x + Phaser.Math.Between(-15, 15), this.sprite.y + Phaser.Math.Between(-1, 1));
+      //graphics.strokeCircle(this.sprite.x + (odds % 2 ? -5 : 5), this.sprite.y + (odds % 2 ? -5 : 5), 5);
+      graphics.closePath();
+      graphics.strokePath();
+      timerEvent.destroy();
       this.sprite.body.destroy();
+      this.scene.time.delayedCall(500,() => {
+        // all stuff to render texture
+        this.scene.rt.draw(this.sprite, this.sprite.x, this.sprite.y);
+        this.sprite.setVisible(false).destroy();
+        this.scene.rt.draw(graphics);
+        graphics.destroy();
+      })
+
       // TODO: blood sprite??
       //this.destroy();
     })

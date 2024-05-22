@@ -1,8 +1,10 @@
+import { Game } from "../Game"
+
 export class TilePainter {
-    private scene: Phaser.Scene
+    private scene: Game
     private paintTextures: string
 
-    constructor(scene: Phaser.Scene, paintTextures: string) {
+    constructor(scene: Game, paintTextures: string) {
         this.scene = scene
         this.paintTextures = paintTextures
     }
@@ -36,6 +38,13 @@ export class TilePainter {
             paintSprite.setOrigin(0, 0) // align the sprite with the top left of the tile
         }
         paintSprite.setAngle(Phaser.Math.FloatBetween(0, 360))
+
+        this.scene.time.delayedCall(500, () => {
+            this.scene.rt.draw(paintSprite);
+            paintSprite.destroy();
+        })
+
+
     }
 
 

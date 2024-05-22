@@ -2,7 +2,8 @@ import Enemy from "./Enemy";
 import { Game } from "./Game";
 
 const BULLET_VELOCITY = 250 * 2;
-const SHELL_VELOCITY = 150;
+const SHELL_VELOCITY_MIN = 125;
+const SHELL_VELOCITY_MAX = 175;
 const SHOOTING_FREQUENCY = 200;
 const weaponScreenshake = 0.00025;
 const weaponKnockback = 50;
@@ -368,17 +369,18 @@ export default class Player {
       .sprite(sprite.x, sprite.y, "sprites", "sprShell_0.png")
       //.setScale(1)
       .setBounce(0.1)
-      .setDrag(20)
+      .setDrag(200)
       .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
     //.setAngle(Phaser.Math.Between(0, 9));
     shell.body.setSize(shell.displayWidth * 0.1, shell.displayHeight * 0.1);
 
     // maybe cooler to fly to the side in a curve?
-    const error = Phaser.Math.FloatBetween(-0.1, 0.1)
+    const rndShellAngle = Phaser.Math.FloatBetween(-0.75, -.25)
+    const rndShellSpeed = Phaser.Math.Between(SHELL_VELOCITY_MIN, SHELL_VELOCITY_MAX);
     // set bullet velocity the other direction
     shell.body.setVelocity(
-      SHELL_VELOCITY * Math.cos(sprite.rotation + error - Math.PI / 2),
-      SHELL_VELOCITY * Math.sin(sprite.rotation + error - Math.PI / 2)
+      rndShellSpeed * Math.cos(sprite.rotation + rndShellAngle - Math.PI / 2),
+      rndShellSpeed * Math.sin(sprite.rotation + rndShellAngle - Math.PI / 2)
     );
     this.scene.physics.world.addCollider(
       shell,
@@ -392,6 +394,8 @@ export default class Player {
     // disable body after a while
     this.scene.time.delayedCall(2000, () => {
       shell.body.setEnable(false);
+      this.scene.rt.draw(shell);
+      shell.destroy();
     });
 
     const velocity = BULLET_VELOCITY;

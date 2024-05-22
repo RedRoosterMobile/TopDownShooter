@@ -44,6 +44,8 @@ export class Game extends Scene {
   enemies: Array<Enemy>;
   keyN: Phaser.Input.Keyboard.Key;
   mapFloor: Phaser.Tilemaps.TilemapLayer;
+  rt: Phaser.GameObjects.RenderTexture;
+  music: Phaser.Sound.WebAudioSound;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -52,13 +54,18 @@ export class Game extends Scene {
   }
 
   create() {
+    this.music = this.sound.add('music', { loop: true }) as Phaser.Sound.WebAudioSound;
+this.music.play();
+
     this.camera = this.cameras.main;
     this.rotateCameraTime = 0;
-    this.camera.setBackgroundColor(0x00ff00);
+    //this.camera.setBackgroundColor(0x00ff00);
+    //this.camera.setBackgroundColor(0x000000);
 
     this.background = this.add.image(512, 384, 'background');
     this.background.setAlpha(0.5);
     this.enemies = [];
+
 
     // this.msg_text = this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
     //   fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
@@ -78,6 +85,11 @@ export class Game extends Scene {
     );
     // @ts-ignore
     this.mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
+
+    // console.log(this.map.widthInPixels, this.map.heightInPixels);
+    this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
+
+    // create render texture
     // @ts-ignore
     this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
@@ -106,6 +118,15 @@ export class Game extends Scene {
     //this.createVignette()
     this.createHorrifyFx();
     this.createInput();
+  }
+
+  createRenderTexture(width: number, height: number) {
+    this.rt = this.add.renderTexture(
+      width / 2,
+      height / 2,
+      width,
+      height
+    ).setPipeline('Light2D');
   }
 
   createInput() {
@@ -372,7 +393,7 @@ export class Game extends Scene {
       const allObjects = this.ray.overlap();
       allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
         if (obj === enemyObj.sprite) {
-          console.log('OVERLAP');
+          // console.log('OVERLAP');
           if (enemyObj.sprite.alpha < 1) {
             //this.tweens.killTweensOf(enemyObj.sprite);
             enemyObj.sprite.setAlpha(1);
@@ -380,7 +401,7 @@ export class Game extends Scene {
 
           enemyObj.startFlyingTowardsPlayer();
         } else {
-          console.log('NO OVERLAP');
+          // console.log('NO OVERLAP');
           if (enemyObj.sprite.alpha >= 0.5) {
             // this.tweens.add({
             //   targets: enemyObj.sprite,
