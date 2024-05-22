@@ -46,11 +46,13 @@ export class Game extends Scene {
   mapFloor: Phaser.Tilemaps.TilemapLayer;
   rt: Phaser.GameObjects.RenderTexture;
   music: Phaser.Sound.WebAudioSound;
+  enemyId: number;
 
   // msg_text: Phaser.GameObjects.Text;
 
   constructor() {
     super('Game');
+    this.enemyId = 0;
   }
 
   create() {
@@ -149,7 +151,8 @@ export class Game extends Scene {
     const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor)
     // fixme: this array will go to infinity and beyond!
     this.enemies.push(enemy);
-    enemy.id = this.enemies.length;
+    this.enemyId++;
+    enemy.id = this.enemyId;
   }
   createHorrifyFx() {
     const horrifySettings = {

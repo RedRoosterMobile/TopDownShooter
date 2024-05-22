@@ -120,9 +120,9 @@ export default class Enemy {
       this.timeToNextGroan -= delta;
       if (this.timeToNextGroan <= 0) {
         // new random next groan
-        
-        this.timeToNextGroan = Phaser.Math.Between(1000, 2000);
-        console.log(this.timeToNextGroan, 'GROOOOOAAN!'+this.timeToNextGroan);
+        const l = this.scene.enemies.length
+        this.timeToNextGroan = Phaser.Math.Between(1000 * l, 2000 * l);
+        console.log(this.timeToNextGroan, 'GROOOOOAAN!' + this.id);
 
         // only do this if:
         // wait...

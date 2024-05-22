@@ -286,8 +286,8 @@ export default class Player {
               // special case
               ec.dieFromBullet(bullet.body.velocity.clone());
               // filter found one
-               this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
-              //this.scene.enemies = this.scene.enemies.filter((_enemy) => enemyObj.id !== _enemy.id)
+              // this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
+              this.scene.enemies = this.scene.enemies.filter((_enemy) => enemyObj.id !== _enemy.id)
             }
             console.log('destory ullets#############################');
 
