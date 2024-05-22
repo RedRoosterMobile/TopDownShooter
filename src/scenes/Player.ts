@@ -208,7 +208,11 @@ export default class Player {
 
   shootBullet(sprite: Phaser.GameObjects.Sprite) {
     if (!this.allowShooting) return;
+
     this.allowShooting = false;
+    this.scene.sound.play("shoot", {
+      rate: Phaser.Math.FloatBetween(0.9, 1.1)
+    });
     // ----- bullet ----------
     const bulletScale = 0.5;
     const distanceFromCenterX = 8;
@@ -359,6 +363,9 @@ export default class Player {
 
         console.log('kill light');
         light.setVisible(false);
+        this.scene.sound.play("explosion", {
+          rate: Phaser.Math.FloatBetween(0.5, 1)
+        });
         // kill bullet
         bullet.destroy();
       }
@@ -372,6 +379,12 @@ export default class Player {
       .setDrag(200)
       .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
     //.setAngle(Phaser.Math.Between(0, 9));
+
+    this.scene.sound.play("shells", {
+      rate: Phaser.Math.FloatBetween(0.95, 1.05),
+      // @ts-ignore
+      cents: Phaser.Math.FloatBetween(0, 50)
+    });
     shell.body.setSize(shell.displayWidth * 0.1, shell.displayHeight * 0.1);
 
     // maybe cooler to fly to the side in a curve?
@@ -442,6 +455,9 @@ export default class Player {
       repeat: -1
     });
     bulletExplosionOnGround.play("explosion");
+    this.scene.sound.play("explosion", {
+      rate: Phaser.Math.FloatBetween(0.5, 1)
+    });
 
     // this.scene.sound.play("explosion", {
     //   rate: Phaser.Math.FloatBetween(0.5, 1),

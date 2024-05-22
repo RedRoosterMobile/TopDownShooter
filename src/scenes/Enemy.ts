@@ -197,6 +197,11 @@ export default class Enemy {
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
+
+    this.scene.sound.play("explodeBody", {
+      rate: Phaser.Math.FloatBetween(0.7, 1),
+      detune: Phaser.Math.FloatBetween(0, 50)
+    });
     this.tilePainter.paintTile(this.lastFloorTile as Phaser.Tilemaps.Tile);
     this.sprite.play('die_bullet', true);
     const randomSlowdown = Phaser.Math.FloatBetween(0.2, 1);
@@ -244,12 +249,16 @@ export default class Enemy {
       graphics.strokePath();
       timerEvent.destroy();
       this.sprite.body.destroy();
-      this.scene.time.delayedCall(500,() => {
-        // all stuff to render texture
-        this.scene.rt.draw(this.sprite, this.sprite.x, this.sprite.y);
-        this.sprite.setVisible(false).destroy();
-        this.scene.rt.draw(graphics);
-        graphics.destroy();
+      this.scene.time.delayedCall(500, () => {
+        this.sprite.play('die_bullet', true);
+        this.scene.time.delayedCall(500, () => {
+          // all stuff to render texture
+          this.scene.rt.draw(this.sprite, this.sprite.x, this.sprite.y);
+          this.sprite.setVisible(false).destroy();
+          this.scene.rt.draw(graphics);
+          graphics.destroy();
+        });
+
       })
 
       // TODO: blood sprite??
