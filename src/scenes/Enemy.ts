@@ -3,7 +3,9 @@ import { Game } from "./Game";
 import { TilePainter } from "./classes/TilePainter";
 
 const ENEMY_SPEED = 1;
-const FLYING_COOLDOWN_MS = 0;
+const FLYING_COOLDOWN_MS = 1000;
+
+
 
 export default class Enemy {
   scene: Game;
@@ -23,6 +25,14 @@ export default class Enemy {
   tilePainter: TilePainter;
   timeToNextGroan: number;
   id: number;
+
+  magicCircle(magicScaler = 0.300) {
+    const width = this.sprite.width;
+    const newWidth = width * magicScaler;
+    const diff = width - newWidth;
+    this.offset = diff / 4 + (1 - magicScaler);
+    this.sprite.setCircle(newWidth, this.offset, this.offset);
+  }
   /**
    *
    * @param {Game} scene
@@ -53,18 +63,13 @@ export default class Enemy {
       //.setScale(1)
       .setTint(randomTint)
 
-    const magicScaler = 0.300;
-    const width = this.sprite.width;
-    const newWidth = width * magicScaler;
-    const diff = width - newWidth;
-    this.offset = diff / 4 + (1 - magicScaler);
-    this.sprite.setCircle(newWidth, this.offset, this.offset);
+    this.magicCircle();
 
     //this.sprite.body.setSize(8*0.5,8,true);
 
     // this.sprite.setCircle(newWidth, 0, 0);
 
-    this.sprite.body.center.set(this.sprite.body.center.x - width / 2, this.sprite.body.center.y - width / 2);
+    this.sprite.body.center.set(this.sprite.body.center.x - this.sprite.width / 2, this.sprite.body.center.y - this.sprite.width / 2);
     console.log(this.sprite.body.center);
 
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
@@ -133,7 +138,6 @@ export default class Enemy {
       this.flyingCoolDownMs -= delta;
     }
 
-
     // if distance to player is below 15 attach!
     const distToPlayer = Phaser.Math.Distance.Between(
       this.scene.player.sprite.x,
@@ -142,7 +146,22 @@ export default class Enemy {
       this.sprite.y
     );
     if (distToPlayer < 15) {
-      this.isGrabbing = true;
+      // debatable..
+      // this.isGrabbing = true;
+    }
+
+    if (this.isGrabbing) {
+      // attach the zombie to the player at a distance of 15
+      //Phaser.Actions.PlaceOnCircle()
+      Phaser.Actions.RotateAroundDistance(
+        [this.sprite],
+        { x: this.scene.player.sprite.x, y: this.scene.player.sprite.y },
+        Phaser.Math.FloatBetween(0.1, 0.01),
+        10
+      );
+      this.magicCircle(0.001);
+
+      //this.sprite.disableBody();
     }
 
 
@@ -170,7 +189,7 @@ export default class Enemy {
           loop: false
         });
 
-        
+
         // this.scene.sound.play("zombie", {
         //   rate: Phaser.Math.FloatBetween(0.7, 1),
         //   detune: Phaser.Math.FloatBetween(0, 50),
@@ -184,11 +203,12 @@ export default class Enemy {
       const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
       let rotation = Phaser.Math.Angle.Between(sprite.x, sprite.y, pointToHere.x, pointToHere.y);
       sprite.setRotation(rotation);
-      let speed = delta * ENEMY_SPEED; // Set the speed at which the sprite should move
+
       // Calculate the velocity in the x and y directions
-      let velocityX = Math.cos(rotation) * speed;
-      let velocityY = Math.sin(rotation) * speed;
       if (!this.isFlying || !this.isGrabbing) {
+        let speed = delta * ENEMY_SPEED; // Set the speed at which the sprite should move
+        let velocityX = Math.cos(rotation) * speed;
+        let velocityY = Math.sin(rotation) * speed;
         // Set the velocity of the sprite
         sprite.setVelocity(velocityX, velocityY);
       }
@@ -197,6 +217,7 @@ export default class Enemy {
       if (this.isGrabbing) {
         this.sprite.setAcceleration(0.0);
         this.sprite.play('wiggle', true);
+
 
 
         // this.sprite.setVelocity(0, 0);
@@ -222,12 +243,15 @@ export default class Enemy {
   }
 
   startWalking() {
-    this.isGrabbing = false;
-    this.isWalking = true;
-    this.isFlying = false;
-    if (this.sprite) {
-      this.sprite.play('wiggle', true);
+    if (!this.isGrabbing) {
+      this.isGrabbing = false;
+      this.isWalking = true;
+      this.isFlying = false;
+      if (this.sprite) {
+        this.sprite.play('wiggle', true);
+      }
     }
+
   }
 
   startGrabbingPlayer() {
@@ -238,9 +262,13 @@ export default class Enemy {
     if (this.sprite) {
       this.sprite.play('wiggle', true);
     }
+    this.scene.player.attachedEnemies.push(this.id);
   }
 
   startFlyingTowardsPlayer() {
+    if (this.isGrabbing) {
+      return;
+    }
     this.isGrabbing = false;
     this.isWalking = false;
     this.isFlying = true;
@@ -251,7 +279,8 @@ export default class Enemy {
       this.sprite.y
     );
 
-    if (this.flyingCoolDownMs <= 0 && distToPlayer > 80) {
+    if (this.flyingCoolDownMs <= 0 && distToPlayer < 50) {
+      console.log('fly');
       this.sprite.play('fly', true);
       this.sprite.setVelocity(0, 0);
 
@@ -264,6 +293,7 @@ export default class Enemy {
         repeat: 0,
         onComplete: () => {
           // start grabbing
+          console.log('start grabbing');
           this.startGrabbingPlayer();
         }
       })

@@ -9,6 +9,9 @@ const SHOOTING_FREQUENCY = 200;
 const weaponScreenshake = 0.00025 * 2;
 const weaponKnockback = 50;
 
+const WALKING_ACCELLERATION = 120;
+const GRABBING_SLOWDOWN_PER_ENEMY = 10;
+const MIN_WALK_SPEED = 50;
 const DEBUG_CIRCLES = true;
 const CLOSE_CIRCLE_RADIUS = 15;
 const INNER_CIRCLE_RADIUS = 50;
@@ -26,7 +29,7 @@ export default class Player {
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
   innerCircleGaphics: Phaser.GameObjects.Graphics;
-  attachedEnemies: { id: number; };
+  attachedEnemies: [number];
   /**
    *
    * @param {Game} scene
@@ -55,7 +58,8 @@ export default class Player {
     this.offset = diff / 4 + 0.5;
     this.sprite.setCircle(newWidth, this.offset, this.offset);
     this.allowShooting = true;
-    this.attachedEnemies = { id: 0 }
+    this.attachedEnemies = [0];
+    this.attachedEnemies.pop();
 
     // Track the arrow keys & WASD
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
@@ -118,8 +122,9 @@ export default class Player {
   update(time: number, delta: number) {
 
     const sprite = this.sprite;
+    const attachedEnemiesCount = this.attachedEnemies.length;
 
-    const acceleration = 60 * 2;
+    const acceleration = WALKING_ACCELLERATION - Math.max((attachedEnemiesCount * GRABBING_SLOWDOWN_PER_ENEMY), MIN_WALK_SPEED);
     let moveX = 0;
     let moveY = 0;
 
@@ -239,8 +244,6 @@ export default class Player {
       bullet.displayWidth * 0.75,
       bullet.displayHeight * 0.45
     );
-
-
 
     // muzzle
     this.scene.time.delayedCall(3, () => {

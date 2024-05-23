@@ -125,75 +125,6 @@ export class Game extends Scene {
     });
   }
 
-  // kinda eworking
-  noSpatial2() {
-    /* --- set up web audio --- */
-    var url = 'assets/music.m4a';
-    //this is the webaudio loooooppppppp
-    //enter url in the next line
-    //var url = 'hoodie_robot_clipped.wav';
-
-    /* --- set up web audio --- */
-    //create the context
-    var context = new AudioContext();
-    // buffer variable to store audio data
-    //@ts-ignore
-    var audioBuffer;
-    //@ts-ignore
-    var source = null;
-
-    /* --- load buffer ---  */
-    var request = new XMLHttpRequest();
-    //open the request
-    request.open('GET', url, true);
-    //webaudio paramaters
-    request.responseType = 'arraybuffer';
-    //Once the request has completed... do this
-    request.onload = function () {
-      context.decodeAudioData(request.response, function (response) {
-        audioBuffer = response;
-        playAudio();
-      }, function () { console.error('The request failed.'); });
-    }
-    //Now that the request has been defined, actually make the request. (send it)
-    request.send();
-
-    // function to play audio
-    function playAudio() {
-      //@ts-ignore
-      if (audioBuffer) {
-        stopAudio(); // Stop any existing audio before starting a new one
-        source = context.createBufferSource();
-        source.buffer = audioBuffer;
-        source.loop = true;
-        source.connect(context.destination);
-        source.start(0);
-      }
-    }
-
-    // function to stop audio
-    function stopAudio() {
-      // @ts-ignore
-      if (source) {
-        source.stop();
-        source.disconnect();
-        source = null;
-      }
-    }
-
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) {
-        stopAudio();
-      } else {
-        context.resume().then(() => {
-          playAudio();
-        });
-      }
-    });
-
-
-  }
-
   create() {
     //this.input.once('pointerdown', () => {
     this.noSpatial3();
@@ -570,24 +501,23 @@ export class Game extends Scene {
       const allObjects = this.ray.overlap();
       allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
         if (obj === enemyObj.sprite) {
-          // console.log('OVERLAP');
-          if (enemyObj.sprite.alpha < 1) {
+          //console.log('OVERLAP');
+          //if (enemyObj.sprite.alpha < 1) {
             //this.tweens.killTweensOf(enemyObj.sprite);
             enemyObj.sprite.setAlpha(1);
-          }
-
-          enemyObj.startFlyingTowardsPlayer();
+            enemyObj.startFlyingTowardsPlayer();
+          //}
         } else {
-          // console.log('NO OVERLAP');
-          if (enemyObj.sprite.alpha >= 0.5) {
-            // this.tweens.add({
-            //   targets: enemyObj.sprite,
-            //   alpha: 0,
-            //   duration: 5000,
-            //   ease: 'Power2'
-            // });
-            //enemyObj.sprite.setAlpha(.5);
-          }
+          //console.log('NO OVERLAP');
+          // if (enemyObj.sprite.alpha >= 0.0) {
+          //   // this.tweens.add({
+          //   //   targets: enemyObj.sprite,
+          //   //   alpha: 0,
+          //   //   duration: 5000,
+          //   //   ease: 'Power2'
+          //   // });
+          //   enemyObj.sprite.setAlpha(.5);
+          // }
 
 
           enemyObj.startWalking();
