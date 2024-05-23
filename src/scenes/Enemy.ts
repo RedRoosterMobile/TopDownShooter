@@ -3,7 +3,7 @@ import { Game } from "./Game";
 import { TilePainter } from "./classes/TilePainter";
 
 const ENEMY_SPEED = 1;
-const FLYING_COOLDOWN_MS = 1500;
+const FLYING_COOLDOWN_MS = 0;
 
 export default class Enemy {
   scene: Game;
@@ -29,7 +29,7 @@ export default class Enemy {
    * @param {*} x
    * @param {*} y
    */
-  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer) {
+  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer, id: number) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
     this.isFlying = false;
@@ -38,6 +38,7 @@ export default class Enemy {
     this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
     this.tilePainter = new TilePainter(this.scene, "sprites");
     this.timeToNextGroan = 1000;
+    this.id = id;
 
     const array = [0xaaaaaa, 0x99a9a9, 0x988888, 0x777777];
     //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
@@ -49,19 +50,36 @@ export default class Enemy {
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000)
       .setScale(Phaser.Math.FloatBetween(1, 1.5))
+      //.setScale(1)
       .setTint(randomTint)
 
+    const magicScaler = 0.300;
     const width = this.sprite.width;
-    const newWidth = width * 0.35;
+    const newWidth = width * magicScaler;
     const diff = width - newWidth;
-    this.offset = diff / 4 + 0.5;
+    this.offset = diff / 4 + (1 - magicScaler);
     this.sprite.setCircle(newWidth, this.offset, this.offset);
+
+    //this.sprite.body.setSize(8*0.5,8,true);
+
+    // this.sprite.setCircle(newWidth, 0, 0);
+
+    this.sprite.body.center.set(this.sprite.body.center.x - width / 2, this.sprite.body.center.y - width / 2);
+    console.log(this.sprite.body.center);
 
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
     this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
     this.scene.physics.world.addOverlap(this.sprite, floorLayer, (_, floor) => {
       this.lastFloorTile = floor;
     });
+
+    // TODO: other enemies
+    // this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
+    this.scene.enemies.forEach((_enemy) => {
+      if (_enemy.id != this.id) {
+        this.scene.physics.world.addCollider(this.sprite, _enemy.sprite)
+      }
+    })
 
     this.createAnimations();
   }
@@ -104,6 +122,7 @@ export default class Enemy {
   }
 
   update(time: number, delta: number) {
+
     if (this.isDead) {
       this.sprite.play('die_bullet', true);
       return;
@@ -112,6 +131,18 @@ export default class Enemy {
     const sprite = this.sprite;
     if (this.isFlying) {
       this.flyingCoolDownMs -= delta;
+    }
+
+
+    // if distance to player is below 15 attach!
+    const distToPlayer = Phaser.Math.Distance.Between(
+      this.scene.player.sprite.x,
+      this.scene.player.sprite.y,
+      this.sprite.x,
+      this.sprite.y
+    );
+    if (distToPlayer < 15) {
+      this.isGrabbing = true;
     }
 
 
@@ -126,15 +157,29 @@ export default class Enemy {
 
         // only do this if:
         // wait...
-        this.scene.sound.play("zombie", {
+
+        this.scene.zombieSfx.play(
+          Phaser.Math.Between(0, 11) + '', {
           rate: Phaser.Math.FloatBetween(0.7, 1),
           detune: Phaser.Math.FloatBetween(0, 50),
           source: {
             x: this.sprite.x,
             y: this.sprite.y,
             ...C_SPATIAL_AUDIO
-          }
+          },
+          loop: false
         });
+
+        
+        // this.scene.sound.play("zombie", {
+        //   rate: Phaser.Math.FloatBetween(0.7, 1),
+        //   detune: Phaser.Math.FloatBetween(0, 50),
+        //   source: {
+        //     x: this.sprite.x,
+        //     y: this.sprite.y,
+        //     ...C_SPATIAL_AUDIO
+        //   }
+        // });
       }
       const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
       let rotation = Phaser.Math.Angle.Between(sprite.x, sprite.y, pointToHere.x, pointToHere.y);
@@ -199,8 +244,14 @@ export default class Enemy {
     this.isGrabbing = false;
     this.isWalking = false;
     this.isFlying = true;
+    const distToPlayer = Phaser.Math.Distance.Between(
+      this.scene.player.sprite.x,
+      this.scene.player.sprite.y,
+      this.sprite.x,
+      this.sprite.y
+    );
 
-    if (this.flyingCoolDownMs <= 0) {
+    if (this.flyingCoolDownMs <= 0 && distToPlayer > 80) {
       this.sprite.play('fly', true);
       this.sprite.setVelocity(0, 0);
 

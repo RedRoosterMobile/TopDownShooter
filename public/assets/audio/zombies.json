@@ -1,0 +1,63 @@
+{
+  "resources": [
+    "zombie/zombies.m4a"
+  ],
+  "spritemap": {
+    "1": {
+      "start": 0,
+      "end": 3.900952380952381,
+      "loop": false
+    },
+    "2": {
+      "start": 19,
+      "end": 23.15637188208617,
+      "loop": false
+    },
+    "3": {
+      "start": 25,
+      "end": 28.715192743764174,
+      "loop": false
+    },
+    "4": {
+      "start": 30,
+      "end": 33.97061224489796,
+      "loop": false
+    },
+    "5": {
+      "start": 35,
+      "end": 40.68888888888889,
+      "loop": false
+    },
+    "6": {
+      "start": 42,
+      "end": 47.17804988662132,
+      "loop": false
+    },
+    "7": {
+      "start": 49,
+      "end": 56.082086167800455,
+      "loop": false
+    },
+    "8": {
+      "start": 58,
+      "end": 61.645532879818596,
+      "loop": false
+    },
+    "9": {
+      "start": 63,
+      "end": 67.29569160997733,
+      "loop": false
+    },
+    "10": {
+      "start": 5,
+      "end": 9.411791383219954,
+      "loop": false
+    },
+    "11": {
+      "start": 11,
+      "end": 17.57124716553288,
+      "loop": false
+    }
+  },
+  "autoplay": true
+}

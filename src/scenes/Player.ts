@@ -6,10 +6,11 @@ const BULLET_VELOCITY = 250 * 2;
 const SHELL_VELOCITY_MIN = 125;
 const SHELL_VELOCITY_MAX = 175;
 const SHOOTING_FREQUENCY = 200;
-const weaponScreenshake = 0.00025;
+const weaponScreenshake = 0.00025 * 2;
 const weaponKnockback = 50;
 
 const DEBUG_CIRCLES = true;
+const CLOSE_CIRCLE_RADIUS = 15;
 const INNER_CIRCLE_RADIUS = 50;
 const OUTER_CIRCLE_RADIUS = 100;
 
@@ -25,6 +26,7 @@ export default class Player {
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
   innerCircleGaphics: Phaser.GameObjects.Graphics;
+  attachedEnemies: { id: number; };
   /**
    *
    * @param {Game} scene
@@ -53,6 +55,7 @@ export default class Player {
     this.offset = diff / 4 + 0.5;
     this.sprite.setCircle(newWidth, this.offset, this.offset);
     this.allowShooting = true;
+    this.attachedEnemies = { id: 0 }
 
     // Track the arrow keys & WASD
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
@@ -64,6 +67,7 @@ export default class Player {
         fillStyle: { color: 0xffffff, alpha: 1, }
       }).setDepth(1);;
 
+      this.drawCircle(CLOSE_CIRCLE_RADIUS);
       this.drawCircle(INNER_CIRCLE_RADIUS);
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
@@ -177,6 +181,7 @@ export default class Player {
     this.legs.setRotation(sprite.rotation);
     if (DEBUG_CIRCLES) {
       this.innerCircleGaphics.clear();
+      this.drawCircle(CLOSE_CIRCLE_RADIUS);
       this.drawCircle(INNER_CIRCLE_RADIUS);
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
@@ -274,7 +279,7 @@ export default class Player {
           const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
 
           if (foundEnemy.length) {
-            
+
             console.log('enemy hit', enemy, foundEnemy[0]);
 
             const ec: Enemy = foundEnemy[0];
@@ -485,11 +490,6 @@ export default class Player {
         ...C_SPATIAL_AUDIO
       }
     });
-
-    // this.scene.sound.play("explosion", {
-    //   rate: Phaser.Math.FloatBetween(0.5, 1),
-    //   volume: volume
-    // });
     this.scene.time.delayedCall(
       400,
       () => {

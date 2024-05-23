@@ -4,6 +4,7 @@ import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
 import Enemy from './Enemy';
+import { C_SPATIAL_AUDIO } from './Constants';
 
 const PLAYER_SPAWN = "Spawn Point";
 const ENEMY = "Enemy";
@@ -47,6 +48,7 @@ export class Game extends Scene {
   rt: Phaser.GameObjects.RenderTexture;
   music: Phaser.Sound.WebAudioSound;
   enemyId: number;
+  zombieSfx: Phaser.Sound.WebAudioSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -55,13 +57,159 @@ export class Game extends Scene {
     this.enemyId = 0;
   }
 
-  create() {
-    this.music = this.sound.add('music', { loop: true }) as Phaser.Sound.WebAudioSound;
-    this.music.play({
-      loop: true,
-      // needed to hear music
-      source: { refDistance: 10000, }
+  noSpatial3() {
+    //this is the webaudio loooooppppppp
+    //enter url in the next line
+    var url = 'assets/music.m4a';
+
+    /* --- set up web audio --- */
+    //create the context
+    var context = new AudioContext();
+    // buffer variable to store audio data
+    //@ts-ignore
+    var audioBuffer;
+    //@ts-ignore
+    var source = null;
+    var startTime = 0;
+    var currentTime = 0;
+
+    /* --- load buffer ---  */
+    var request = new XMLHttpRequest();
+    //open the request
+    request.open('GET', url, true);
+    //webaudio paramaters
+    request.responseType = 'arraybuffer';
+    //Once the request has completed... do this
+    request.onload = function () {
+      context.decodeAudioData(request.response, function (response) {
+        audioBuffer = response;
+        playAudio();
+      }, function () { console.error('The request failed.'); });
+    }
+    //Now that the request has been defined, actually make the request. (send it)
+    request.send();
+
+    // function to play audio
+    function playAudio() {
+      //@ts-ignore
+      if (audioBuffer) {
+        stopAudio(); // Stop any existing audio before starting a new one
+        source = context.createBufferSource();
+        source.buffer = audioBuffer;
+        source.loop = true;
+        source.connect(context.destination);
+        startTime = context.currentTime - currentTime;
+        source.start(0, currentTime % audioBuffer.duration);
+      }
+    }
+
+    // function to stop audio
+    function stopAudio() {
+      //@ts-ignore
+      if (source) {
+        currentTime = context.currentTime - startTime;
+        source.stop();
+        source.disconnect();
+        source = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        stopAudio();
+      } else {
+        context.resume().then(() => {
+          playAudio();
+        });
+      }
     });
+  }
+
+  // kinda eworking
+  noSpatial2() {
+    /* --- set up web audio --- */
+    var url = 'assets/music.m4a';
+    //this is the webaudio loooooppppppp
+    //enter url in the next line
+    //var url = 'hoodie_robot_clipped.wav';
+
+    /* --- set up web audio --- */
+    //create the context
+    var context = new AudioContext();
+    // buffer variable to store audio data
+    //@ts-ignore
+    var audioBuffer;
+    //@ts-ignore
+    var source = null;
+
+    /* --- load buffer ---  */
+    var request = new XMLHttpRequest();
+    //open the request
+    request.open('GET', url, true);
+    //webaudio paramaters
+    request.responseType = 'arraybuffer';
+    //Once the request has completed... do this
+    request.onload = function () {
+      context.decodeAudioData(request.response, function (response) {
+        audioBuffer = response;
+        playAudio();
+      }, function () { console.error('The request failed.'); });
+    }
+    //Now that the request has been defined, actually make the request. (send it)
+    request.send();
+
+    // function to play audio
+    function playAudio() {
+      //@ts-ignore
+      if (audioBuffer) {
+        stopAudio(); // Stop any existing audio before starting a new one
+        source = context.createBufferSource();
+        source.buffer = audioBuffer;
+        source.loop = true;
+        source.connect(context.destination);
+        source.start(0);
+      }
+    }
+
+    // function to stop audio
+    function stopAudio() {
+      // @ts-ignore
+      if (source) {
+        source.stop();
+        source.disconnect();
+        source = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        stopAudio();
+      } else {
+        context.resume().then(() => {
+          playAudio();
+        });
+      }
+    });
+
+
+  }
+
+  create() {
+    //this.input.once('pointerdown', () => {
+    this.noSpatial3();
+    //});
+    // this.music = this.sound.add('music', {
+    //   loop: true, source: {
+    //     x: 0,
+    //     y: 0,
+    //     refDistance: 10000
+    //   }
+    // }) as Phaser.Sound.WebAudioSound;
+    // //@ts-ignore
+    // window.mm = this.music;
+
+
+    this.zombieSfx = this.sound.addAudioSprite('zombies');
 
     this.camera = this.cameras.main;
     this.rotateCameraTime = 0;
@@ -111,6 +259,23 @@ export class Game extends Scene {
     console.log(spawnPoint);
     // @ts-ignore
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
+
+    // this.music.play({
+    //   loop: true,
+    //   // needed to hear music
+    //   // source: {
+    //   //   // coneInnerAngle:0,
+    //   //   // coneOuterAngle:360,
+    //   //   // coneOuterGain:0,
+    //   //   panningModel: 'equalpower',
+    //   //   //rolloffFactor: 0,
+    //   //   // maxDistance:0.01,
+    //   //   //follow:this.player.sprite, 
+    //   //   //distanceModel: 'inverse',
+    //   //   refDistance: 100000,
+    //   //   maxDistance: 100001
+    //   // }
+    // });
     // @ts-ignore
     this.sound.setListenerPosition(spawnPoint.x, spawnPoint.y);
     this.player.sprite.body.setCollideWorldBounds(true);
@@ -126,6 +291,7 @@ export class Game extends Scene {
     //this.createVignette()
     this.createHorrifyFx();
     this.createInput();
+    //this.noSpatial();
   }
 
   createRenderTexture(width: number, height: number) {
@@ -147,11 +313,10 @@ export class Game extends Scene {
       "Objects",
       (obj) => obj.name === ENEMY
     );
-    // @ts-ignore
-    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor)
-    this.enemies.push(enemy);
     this.enemyId++;
-    enemy.id = this.enemyId;
+    // @ts-ignore
+    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor, this.enemyId)
+    this.enemies.push(enemy);
   }
   createHorrifyFx() {
     const horrifySettings = {
@@ -377,6 +542,7 @@ export class Game extends Scene {
 
   update(time: number, delta: number): void {
     this.player.update(time, delta);
+
     this.sound.listenerPosition.set(this.player.sprite.x, this.player.sprite.y);
     this.enemies.forEach((enemy) => enemy.update(time, delta))
     if (Phaser.Input.Keyboard.JustDown(this.keyN)) {

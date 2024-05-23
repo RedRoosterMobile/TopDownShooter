@@ -25,7 +25,45 @@ export class Preloader extends Scene {
     });
   }
 
+  
+  noSpatial() {
+    console.log('nospacial');
+//    var url = 'assets/music.m4a';
+    var url ='assets/audio/gemattack-maintheme.m4a';
+
+    /* --- set up web audio --- */
+    //create the context
+    var context = new AudioContext();
+    //...and the source
+    var source = context.createBufferSource();
+    //connect it to the destination so you can hear it.
+    source.connect(context.destination);
+
+    /* --- load buffer ---  */
+    var request = new XMLHttpRequest();
+    //Once the request has completed... do this
+    request.onload = function () {
+      console.log('loaded');
+      context.decodeAudioData(request.response, function (response) {
+        /* --- play the sound AFTER the buffer loaded --- */
+        //set the buffer to the response we just received.
+        source.buffer = response;
+        //start(0) should play asap.
+        source.start(0);
+        source.loop = true;
+      }, function () { console.error('The request failed.'); });
+    }
+    //webaudio paramaters
+    request.responseType = 'arraybuffer';
+    //open the request
+    request.open('GET', url, true);
+    
+    
+  }
+
   preload() {
+    
+    
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets');
 
@@ -33,8 +71,9 @@ export class Preloader extends Scene {
     this.load.image('logo', 'logo.png');
 
 
-    this.load.audio('music','music.m4a');
-    this.load.audio('zombie','audio/zombie.m4a');
+    //this.load.audio('music','music.m4a');
+    // this.load.audio('zombie','audio/zombie.m4a');
+    this.load.audioSprite('zombies', 'audio/zombies.json', 'audio/zombies.m4a');
     this.load.audio("explodeBody", "audio/sndGoreSplash.mp3");
     this.load.audio("shells", "audio/sndShells.m4a");
     this.load.audio("shoot", "audio/sndFireBass.wav");

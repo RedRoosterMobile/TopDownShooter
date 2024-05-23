@@ -18,9 +18,9 @@ const config: Types.Core.GameConfig = {
     width: 1024,
     height: 768,
     pixelArt: true,
-    roundPixels: true, 
+    roundPixels: true,
     antialias: false,
-    autoRound: false, 
+    autoRound: false,
     antialiasGL: false,
     parent: 'game-container',
     //backgroundColor: '#028af8',
@@ -43,7 +43,7 @@ const config: Types.Core.GameConfig = {
         MainGame,
         GameOver
     ],
-    
+
     // @ts-ignore
     pipeline: [HorrifiPostFx],
     plugins: {
