@@ -51,7 +51,12 @@ export class Preloader extends Scene {
 
     // player
 
-    this.load.image('player', 'player.png')
+    // this.load.image('player', 'player.png')
+    this.load.atlas(
+      "player",
+      "playerSheet.png",
+      "playerSheet.json"
+    );
 
 
     // bullets and stuff
@@ -74,6 +79,8 @@ export class Preloader extends Scene {
       "enemy.png",
       "enemy.json"
     );
+
+
   }
 
   create() {

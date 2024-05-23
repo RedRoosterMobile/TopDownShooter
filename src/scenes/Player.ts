@@ -57,10 +57,34 @@ export default class Player {
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
-      .sprite(x, y, "player")
+      .sprite(x, y, "player", 'player2.png')
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
+
+    this.sprite.anims.create({
+      key: "walk",
+      frameRate: 2,
+      frames: this.sprite.anims.generateFrameNames("player", {
+        start: 1,
+        end: 2,
+        prefix: "player",
+        suffix: ".png"
+      }),
+      repeat: -1
+    });
+    this.sprite.anims.create({
+      key: "idle",
+      frameRate: 5,
+      frames: this.sprite.anims.generateFrameNames("player", {
+        start: 1,
+        end: 1,
+        prefix: "player",
+        suffix: ".png"
+      }),
+      repeat: -1
+    });
+    //this.sprite.anims.play("walk", true);
 
     this.legs.setDepth(1);
     this.sprite.setDepth(1);
@@ -176,11 +200,12 @@ export default class Player {
 
     // @ts-ignore
     const isMoving = this.keys.left.isDown || this.keys.right.isDown || this.keys.up.isDown || this.keys.down.isDown;
+    isMoving ? this.sprite.anims.play("walk", true) : this.sprite.anims.play("idle", true);
     if (isMoving) {
       if (this.walkingMs >= walkingDustPauseMs) {
         this.walkingMs = 0;
 
-        const playerDirection = this.sprite.body.velocity.clone().normalize() ;
+        const playerDirection = this.sprite.body.velocity.clone().normalize();
         const walkingDust = this.scene.add
           .image(
             sprite.x,
