@@ -25,6 +25,7 @@ export default class Enemy {
   tilePainter: TilePainter;
   timeToNextGroan: number;
   id: number;
+  floorLayer: Phaser.Tilemaps.TilemapLayer;
 
   magicCircle(magicScaler = 0.300) {
     const width = this.sprite.width;
@@ -42,6 +43,7 @@ export default class Enemy {
   constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer, id: number) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
+    this.floorLayer = floorLayer
     this.isFlying = false;
     this.isGrabbing = false;
     this.isWalking = true;
@@ -75,7 +77,9 @@ export default class Enemy {
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
     this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
     this.scene.physics.world.addOverlap(this.sprite, floorLayer, (_, floor) => {
+      //if (!this.isGrabbing) {
       this.lastFloorTile = floor;
+      //}
     });
 
     // TODO: other enemies
@@ -273,6 +277,9 @@ export default class Enemy {
 
     if (this.sprite) {
       this.magicCircle();
+      this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
+      //@ts-ignore
+      this.lastFloorTile = null;
       //this.sprite.play('wiggle', true);
 
       // const rotation = this.sprite.rotation; // or any angle in radians
@@ -289,12 +296,20 @@ export default class Enemy {
 
 
       let vector = new Phaser.Math.Vector2();
-
+      this.isGrabbing = false;
       vector.setToPolar(this.sprite.rotation, 1); // The second parameter is the radius. Set to 1 for a normalized vector
       this.sprite.setAcceleration(vector.x * magnitude, vector.y * magnitude);
-      this.scene.time.delayedCall(300,()=>{
-        this.sprite.setAcceleration(0,0).setVelocity(0,0);
-        this.isWalking = false;
+      this.scene.time.delayedCall(300, () => {
+        this.sprite.setAcceleration(0, 0).setVelocity(0, 0);
+        const aTile = this.floorLayer.getTileAtWorldXY(this.sprite.x, this.sprite.y);
+        console.log(aTile);
+        if (!aTile) {
+          console.log('offscreen... explode??');
+          this.sprite.copyPosition(this.scene.player.sprite);
+        }
+        this.isWalking = true;
+
+        // get tile at
       })
 
       // this.scene.tweens.add({
