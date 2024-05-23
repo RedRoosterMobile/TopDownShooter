@@ -12,6 +12,7 @@ const walkingDustPauseMs = 40
 
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
+const GRABBING_KEY_PRESS_TIME = 104;
 const MIN_WALK_SPEED = 50;
 const HAMMER_TIME = 1000;
 const DEBUG_CIRCLES = true;
@@ -172,7 +173,7 @@ export default class Player {
       let timeBetweenFirstAndLast = this.keyPresses[4] - this.keyPresses[0];
 
       // If the time between the first and last key press is less than 1000ms, trigger your function
-      if (timeBetweenFirstAndLast <= 1000) {
+      if (timeBetweenFirstAndLast <= GRABBING_KEY_PRESS_TIME) {
         this.triggerFunction();
       }
     }

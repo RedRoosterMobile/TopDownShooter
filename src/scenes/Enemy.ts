@@ -164,6 +164,7 @@ export default class Enemy {
         10
       );
       this.magicCircle(0.001);
+      this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2,this.sprite.y + Math.sin(time / 300) * 2);
 
       //this.sprite.disableBody();
     }
@@ -296,7 +297,6 @@ export default class Enemy {
 
 
       let vector = new Phaser.Math.Vector2();
-      this.isGrabbing = false;
       vector.setToPolar(this.sprite.rotation, 1); // The second parameter is the radius. Set to 1 for a normalized vector
       this.sprite.setAcceleration(vector.x * magnitude, vector.y * magnitude);
       this.scene.time.delayedCall(300, () => {
