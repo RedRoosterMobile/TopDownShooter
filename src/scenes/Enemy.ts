@@ -283,19 +283,32 @@ export default class Enemy {
 
       // // Set the acceleration of the sprite
       // this.sprite.setVelocity(accelX, accelY);
+      const enemyDirection = this.sprite.body.velocity.clone().normalize();
+      const magnitude = -3000;
+      //this.sprite.setAcceleration(enemyDirection.x * magnitude, enemyDirection.y * magnitude);
 
-      this.scene.tweens.add({
-        targets: this.sprite,
-        x: this.scene.player.sprite.x + Phaser.Math.Between(-40, 40),
-        y: this.scene.player.sprite.y + Phaser.Math.Between(-40, 40),
-        ease: 'Power2',
-        duration: 500,
-        repeat: 0,
-        onComplete: () => {
-          // done grabbing
-          
-        }
+
+      let vector = new Phaser.Math.Vector2();
+
+      vector.setToPolar(this.sprite.rotation, 1); // The second parameter is the radius. Set to 1 for a normalized vector
+      this.sprite.setAcceleration(vector.x * magnitude, vector.y * magnitude);
+      this.scene.time.delayedCall(300,()=>{
+        this.sprite.setAcceleration(0,0).setVelocity(0,0);
+        this.isWalking = false;
       })
+
+      // this.scene.tweens.add({
+      //   targets: this.sprite,
+      //   x: this.scene.player.sprite.x + Phaser.Math.Between(-40, 40),
+      //   y: this.scene.player.sprite.y + Phaser.Math.Between(-40, 40),
+      //   ease: 'Power2',
+      //   duration: 500,
+      //   repeat: 0,
+      //   onComplete: () => {
+      //     // done grabbing
+
+      //   }
+      // })
     }
     // this.scene.player.attachedEnemies.push(this.id);
   }

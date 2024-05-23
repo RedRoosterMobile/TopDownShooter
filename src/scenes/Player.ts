@@ -3,11 +3,12 @@ import Enemy from "./Enemy";
 import { Game } from "./Game";
 
 const BULLET_VELOCITY = 250 * 2;
-const SHELL_VELOCITY_MIN = 125;
-const SHELL_VELOCITY_MAX = 175;
+const SHELL_VELOCITY_MIN = 130;
+const SHELL_VELOCITY_MAX = 170;
 const SHOOTING_FREQUENCY = 200;
 const weaponScreenshake = 0.00025 * 2;
 const weaponKnockback = 50;
+const walkingDustPauseMs = 40
 
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
@@ -36,6 +37,7 @@ export default class Player {
   pressesWithinTimeframe: number;
   hammerTime: number;
   keyPresses: number[];
+  walkingMs: number;
 
 
   //
@@ -51,6 +53,7 @@ export default class Player {
     this.collisionLayer = wallLayer;
     this.legs = scene.add
       .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
+    this.walkingMs = 0;
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
@@ -170,6 +173,45 @@ export default class Player {
     const acceleration = WALKING_ACCELLERATION - Math.min((attachedEnemiesCount * GRABBING_SLOWDOWN_PER_ENEMY), MIN_WALK_SPEED);
     let moveX = 0;
     let moveY = 0;
+
+    // @ts-ignore
+    const isMoving = this.keys.left.isDown || this.keys.right.isDown || this.keys.up.isDown || this.keys.down.isDown;
+    if (isMoving) {
+      if (this.walkingMs >= walkingDustPauseMs) {
+        this.walkingMs = 0;
+
+        const playerDirection = this.sprite.body.velocity.clone().normalize() ;
+        const walkingDust = this.scene.add
+          .image(
+            sprite.x,
+            sprite.y,
+            "sprites",
+            "sprSmoke_0.png"
+            //"sprExplosion_1.png"
+          )
+          .setScale(0.01);
+
+        this.scene.tweens.add({
+          targets: walkingDust,
+          alpha: { from: 1, to: 0 },
+          scale: { from: 0.01, to: 0.5 },
+          easing: Phaser.Math.Easing.Quartic.Out,
+          x: {
+            from: walkingDust.x,
+            to: walkingDust.x + Phaser.Math.FloatBetween(-5, 5)
+          },
+          y: {
+            from: walkingDust.y,
+            to: walkingDust.y - Phaser.Math.FloatBetween(-5, 5)
+          },
+          duration: 500 + Phaser.Math.FloatBetween(-200, 200),
+          onComplete: () => {
+            walkingDust.destroy();
+          }
+        });
+      }
+      this.walkingMs += delta;
+    }
 
     // @ts-ignore
     if (this.keys.left.isDown) {
@@ -439,13 +481,17 @@ export default class Player {
       }
     );
 
+
+    const array = [0xbbbbbb, 0xaababa, 0xa99999, 0x888888];
+    const randomTint = Phaser.Utils.Array.GetRandom(array);
     // ----- shells ----------
     const shell = this.scene.physics.add
       .sprite(sprite.x, sprite.y, "sprites", "sprShell_0.png")
       //.setScale(1)
       .setBounce(0.1)
-      .setDrag(200)
+      .setDrag(300)
       .setRotation(bullet.rotation + Phaser.Math.DegToRad(Phaser.Math.Between(-4.5, +4.5)))
+      .setTint(randomTint)
     //.setAngle(Phaser.Math.Between(0, 9));
 
 
@@ -456,9 +502,32 @@ export default class Player {
     const rndShellSpeed = Phaser.Math.Between(SHELL_VELOCITY_MIN, SHELL_VELOCITY_MAX);
     // set bullet velocity the other direction
     shell.body.setVelocity(
-      rndShellSpeed * Math.cos(sprite.rotation + rndShellAngle - Math.PI / 2),
-      rndShellSpeed * Math.sin(sprite.rotation + rndShellAngle - Math.PI / 2)
+      rndShellSpeed * 1 * Math.cos(sprite.rotation + rndShellAngle - Math.PI / 2),
+      rndShellSpeed * 1 * Math.sin(sprite.rotation + rndShellAngle - Math.PI / 2)
     );
+
+    // Tween to simulate 3D motion
+    this.scene.tweens.add({
+      targets: shell,
+      scaleX: 2,
+      scaleY: 2,
+      ease: Phaser.Math.Easing.Elastic.In,
+      duration: 250 + Phaser.Math.FloatBetween(-50, -50),
+      onComplete: () => {
+        shell.body.setVelocity(
+          rndShellSpeed * Math.cos(sprite.rotation + rndShellAngle - Math.PI / 2),
+          rndShellSpeed * Math.sin(sprite.rotation + rndShellAngle - Math.PI / 2)
+        );
+        this.scene.tweens.add({
+          targets: shell,
+          scaleX: 1,
+          scaleY: 1,
+          ease: Phaser.Math.Easing.Back.Out,
+          duration: 150 + Phaser.Math.FloatBetween(-50, -50),
+        });
+      }
+    });
+
     this.scene.physics.world.addCollider(
       shell,
       this.collisionLayer,
@@ -477,7 +546,7 @@ export default class Player {
         });
       }
     );
-    
+
 
     // disable body after a while
     this.scene.time.delayedCall(2000, () => {
