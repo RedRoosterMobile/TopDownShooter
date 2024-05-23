@@ -272,6 +272,7 @@ export default class Enemy {
     this.isFlying = false;
 
     if (this.sprite) {
+      this.magicCircle();
       //this.sprite.play('wiggle', true);
 
       // const rotation = this.sprite.rotation; // or any angle in radians
@@ -292,7 +293,7 @@ export default class Enemy {
         repeat: 0,
         onComplete: () => {
           // done grabbing
-          this.magicCircle();
+          
         }
       })
     }

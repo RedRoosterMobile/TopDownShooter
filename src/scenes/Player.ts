@@ -477,6 +477,7 @@ export default class Player {
         });
       }
     );
+    
 
     // disable body after a while
     this.scene.time.delayedCall(2000, () => {
