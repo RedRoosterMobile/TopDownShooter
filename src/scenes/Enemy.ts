@@ -172,7 +172,7 @@ export default class Enemy {
         // new random next groan
         const l = this.scene.enemies.length
         this.timeToNextGroan = Phaser.Math.Between(1000 * l, 2000 * l);
-        console.log(this.timeToNextGroan, 'GROOOOOAAN!' + this.id);
+        // console.log(this.timeToNextGroan, 'GROOOOOAAN!' + this.id);
 
         // only do this if:
         // wait...
@@ -263,6 +263,40 @@ export default class Enemy {
       this.sprite.play('wiggle', true);
     }
     this.scene.player.attachedEnemies.push(this.id);
+  }
+
+  stopGrabbingPlayer() {
+    //
+    this.isGrabbing = false;
+    this.isWalking = false;
+    this.isFlying = false;
+
+    if (this.sprite) {
+      //this.sprite.play('wiggle', true);
+
+      // const rotation = this.sprite.rotation; // or any angle in radians
+      // const accelerationMagnitude = -10000; // Set your desired acceleration magnitude
+      // // Calculate the x and y components of the acceleration vector
+      // const accelX = Math.cos(rotation) * accelerationMagnitude;
+      // const accelY = Math.sin(rotation) * accelerationMagnitude;
+
+      // // Set the acceleration of the sprite
+      // this.sprite.setVelocity(accelX, accelY);
+
+      this.scene.tweens.add({
+        targets: this.sprite,
+        x: this.scene.player.sprite.x + Phaser.Math.Between(-40, 40),
+        y: this.scene.player.sprite.y + Phaser.Math.Between(-40, 40),
+        ease: 'Power2',
+        duration: 500,
+        repeat: 0,
+        onComplete: () => {
+          // done grabbing
+          this.magicCircle();
+        }
+      })
+    }
+    // this.scene.player.attachedEnemies.push(this.id);
   }
 
   startFlyingTowardsPlayer() {

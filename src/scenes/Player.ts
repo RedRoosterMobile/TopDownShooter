@@ -12,6 +12,7 @@ const weaponKnockback = 50;
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
 const MIN_WALK_SPEED = 50;
+const HAMMER_TIME = 1000;
 const DEBUG_CIRCLES = true;
 const CLOSE_CIRCLE_RADIUS = 15;
 const INNER_CIRCLE_RADIUS = 50;
@@ -29,7 +30,15 @@ export default class Player {
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
   innerCircleGaphics: Phaser.GameObjects.Graphics;
+
+  // grabbing stuff
   attachedEnemies: [number];
+  pressesWithinTimeframe: number;
+  hammerTime: number;
+  keyPresses: number[];
+
+
+  //
   /**
    *
    * @param {Game} scene
@@ -38,6 +47,7 @@ export default class Player {
    */
   constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer) {
     this.scene = scene;
+    this.keyPresses = [];
     this.collisionLayer = wallLayer;
     this.legs = scene.add
       .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
@@ -60,6 +70,8 @@ export default class Player {
     this.allowShooting = true;
     this.attachedEnemies = [0];
     this.attachedEnemies.pop();
+
+    this.hammerTime = 0;
 
     // Track the arrow keys & WASD
     const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
@@ -119,12 +131,43 @@ export default class Player {
     this.legs.play('walk', true);
   }
 
+  handleKeyDown(time: number) {
+    // Add the current time to the array of key presses
+    this.keyPresses.push(time);
+
+    // If there are more than 5 key presses, remove the oldest one
+    if (this.keyPresses.length > 5) {
+      this.keyPresses.shift();
+    }
+
+    // If there are exactly 5 key presses, check the time between the first and last
+    if (this.keyPresses.length === 5) {
+      let timeBetweenFirstAndLast = this.keyPresses[4] - this.keyPresses[0];
+
+      // If the time between the first and last key press is less than 1000ms, trigger your function
+      if (timeBetweenFirstAndLast <= 1000) {
+        this.triggerFunction();
+      }
+    }
+  }
+
+  triggerFunction() {
+    // Your function goes here
+    console.log('Function triggered!');
+    const enemyId = this.attachedEnemies.pop();
+    console.log('Function triggered!', this.attachedEnemies.length);
+    const enemy = this.scene.enemies.find((enemy: Enemy) => enemy.id === enemyId);
+    if (enemy) {
+      enemy.stopGrabbingPlayer();
+    }
+  }
+
   update(time: number, delta: number) {
 
     const sprite = this.sprite;
     const attachedEnemiesCount = this.attachedEnemies.length;
 
-    const acceleration = WALKING_ACCELLERATION - Math.max((attachedEnemiesCount * GRABBING_SLOWDOWN_PER_ENEMY), MIN_WALK_SPEED);
+    const acceleration = WALKING_ACCELLERATION - Math.min((attachedEnemiesCount * GRABBING_SLOWDOWN_PER_ENEMY), MIN_WALK_SPEED);
     let moveX = 0;
     let moveY = 0;
 
@@ -146,6 +189,9 @@ export default class Player {
 
     // @ts-ignore
     if (this.keys.space.isDown) {
+      if (attachedEnemiesCount) {
+        this.handleKeyDown(time);
+      }
       this.shootBullet(this.sprite);
     }
 
@@ -310,7 +356,6 @@ export default class Player {
             this.scene.cameras.main.shake(20, weaponScreenshake);
             timerEvent.destroy();
 
-            console.log('kill light');
             light.setVisible(false);
           }
         });
@@ -377,7 +422,6 @@ export default class Player {
         // make dependent on zoom
         this.scene.cameras.main.shake(20, weaponScreenshake);
 
-        console.log('kill light');
         light.setVisible(false);
 
         this.scene.sound.play("explosion", {
