@@ -172,14 +172,15 @@ export class Game extends Scene {
     this.mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
 
     // console.log(this.map.widthInPixels, this.map.heightInPixels);
-    this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
+    this.rt = this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
+
 
     // create render texture
     // @ts-ignore
     this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls.setCollisionByProperty({ collides: true });
-    this.camera.setZoom(4)
+    this.camera.setZoom(4);
 
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -226,12 +227,13 @@ export class Game extends Scene {
   }
 
   createRenderTexture(width: number, height: number) {
-    this.rt = this.add.renderTexture(
+    const rt = this.add.renderTexture(
       width / 2,
       height / 2,
       width,
       height
     ).setPipeline('Light2D');
+    return rt;
   }
 
   createInput() {
@@ -456,7 +458,7 @@ export class Game extends Scene {
       .setDepth(2);
     this.fow.setMask(this.mask);
     this.fow.fillRect(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-    this.fow.setPipeline("Light2D");
+    //this.fow.setPipeline("Light2D");
   }
 
   // drunk effect

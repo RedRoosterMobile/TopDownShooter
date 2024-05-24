@@ -12,7 +12,7 @@ const walkingDustPauseMs = 40
 
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
-const GRABBING_KEY_PRESS_TIME = 104;
+const GRABBING_KEY_PRESS_TIME = 104 * 2;
 const MIN_WALK_SPEED = 50;
 const HAMMER_TIME = 1000;
 const DEBUG_CIRCLES = true;
@@ -346,14 +346,15 @@ export default class Player {
     // ----- bullet ----------
     const bulletScale = 0.5;
     const distanceFromCenterX = 8;
-    const randomStartPos = 2;
-    const bulletX = sprite.x + (distanceFromCenterX * Math.cos(sprite.rotation)); // Adjust spawn position based on player direction
+    const randomStartPos = 1;
+    const bulletX = sprite.x + (distanceFromCenterX * Math.cos(sprite.rotation)) + Phaser.Math.Between(-randomStartPos, randomStartPos); // Adjust spawn position based on player direction
     const bulletY = sprite.y + (distanceFromCenterX * Math.sin(sprite.rotation)) + Phaser.Math.Between(-randomStartPos, randomStartPos);
 
     const bullet = this.scene.physics.add
       .sprite(bulletX, bulletY, "sprites", "sprBullet2_0.png")
       .setScale(bulletScale)
-      .setRotation(sprite.rotation).setTint(0x000000);
+      .setRotation(sprite.rotation)
+      .setTint(0x000000);
     bullet.body.setSize(
       bullet.displayWidth * 0.75,
       bullet.displayHeight * 0.45
@@ -483,8 +484,12 @@ export default class Player {
 
           })
         })
-        //@ts-ignore
-        this.explosion(bullet);
+
+        // 25% chance
+        if (Phaser.Math.Between(0, 3) === 3) {
+          //@ts-ignore
+          this.explosion(bullet);
+        }
         timerEvent.destroy();
         // ----- screen pizzazz ----------
         // make dependent on zoom
@@ -582,10 +587,11 @@ export default class Player {
     });
 
     const velocity = BULLET_VELOCITY;
+    const inaccuracy = Phaser.Math.FloatBetween(-0.1, 0.1);
     // set bullet velocity
     bullet.setVelocity(
-      velocity * Math.cos(sprite.rotation),
-      velocity * Math.sin(sprite.rotation)
+      velocity * Math.cos(sprite.rotation + inaccuracy),
+      velocity * Math.sin(sprite.rotation + inaccuracy)
     );
 
     // ----- knockback ----------
@@ -602,7 +608,7 @@ export default class Player {
   }
 
   explosion(bullet: Phaser.GameObjects.Sprite) {
-    const explosionYRnd = 10;
+    const explosionYRnd = 7;
     const bulletExplosionOnGround = this.scene.add
       .sprite(
         bullet.x,
@@ -643,11 +649,11 @@ export default class Player {
             "sprites",
             "sprSmoke_0.png"
           )
-          .setScale(Phaser.Math.FloatBetween(0.25, 1));
+          .setScale(Phaser.Math.FloatBetween(0.25, 0.5));
         const smokeDistance = 5;
         this.scene.tweens.add({
           targets: smoke,
-          alpha: { from: 1, to: 0 },
+          alpha: { from: 0.781, to: 0 },
           x: { from: smoke.x, to: smoke.x + Phaser.Math.FloatBetween(-smokeDistance, smokeDistance) },
           y: { from: smoke.y, to: smoke.y + Phaser.Math.FloatBetween(-smokeDistance, smokeDistance) },
           duration: 2000 + Phaser.Math.FloatBetween(-200, 200),

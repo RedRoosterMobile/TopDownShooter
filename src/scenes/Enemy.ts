@@ -62,17 +62,12 @@ export default class Enemy {
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000)
       .setScale(Phaser.Math.FloatBetween(1, 1.5))
-      //.setScale(1)
       .setTint(randomTint)
 
     this.magicCircle();
 
-    //this.sprite.body.setSize(8*0.5,8,true);
-
-    // this.sprite.setCircle(newWidth, 0, 0);
-
-    this.sprite.body.center.set(this.sprite.body.center.x - this.sprite.width / 2, this.sprite.body.center.y - this.sprite.width / 2);
-    console.log(this.sprite.body.center);
+    //this.sprite.body.center.set(this.sprite.body.center.x - this.sprite.width / 2, this.sprite.body.center.y - this.sprite.width / 2);
+    //console.log(this.sprite.body.center);
 
     this.scene.physics.world.addCollider(this.sprite, wallLayer);
     this.scene.physics.world.addCollider(this.sprite, this.scene.player.sprite);
@@ -163,8 +158,9 @@ export default class Enemy {
         Phaser.Math.FloatBetween(0.1, 0.01),
         10
       );
+      // Phaser.Actions.PlaceOnCircle([this.sprite],)
       this.magicCircle(0.001);
-      this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2,this.sprite.y + Math.sin(time / 300) * 2);
+      this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2, this.sprite.y + Math.cos(time / 300) * 2);
 
       //this.sprite.disableBody();
     }
@@ -292,7 +288,7 @@ export default class Enemy {
       // // Set the acceleration of the sprite
       // this.sprite.setVelocity(accelX, accelY);
       const enemyDirection = this.sprite.body.velocity.clone().normalize();
-      const magnitude = -3000;
+      const magnitude = -Phaser.Math.Between(3000, 5000);
       //this.sprite.setAcceleration(enemyDirection.x * magnitude, enemyDirection.y * magnitude);
 
 

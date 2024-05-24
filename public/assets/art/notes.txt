@@ -68,11 +68,8 @@ embed tilesheet
 export csv
 
 
-Permanence:
-paint all the stuff to a render texture
-texture will be just above floor
-enemies+bullets need to be painted there after deleting the body and then delete the original sprite
-
+endless dungeon?
+https://labs.phaser.io/edit.html?src=src/tilemap\dungeon%20generator.js    
 
 references:
 https://unitycodemonkey.com/game.php?g=topdownshooter
