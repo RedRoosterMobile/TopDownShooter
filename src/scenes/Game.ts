@@ -1,3 +1,4 @@
+
 import { Scene } from 'phaser';
 import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 // @ts-ignore
@@ -5,6 +6,8 @@ import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
 import Enemy from './Enemy';
 import { C_SPATIAL_AUDIO } from './Constants';
+//import 'pathfinding'
+var PF = require('pathfinding');
 
 const PLAYER_SPAWN = "Spawn Point";
 const ENEMY = "Enemy";
@@ -49,6 +52,9 @@ export class Game extends Scene {
   music: Phaser.Sound.WebAudioSound;
   enemyId: number;
   zombieSfx: Phaser.Sound.WebAudioSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound;
+  pfGrid: any;
+  pfFinder: any;
+  matrix: any;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -171,15 +177,37 @@ export class Game extends Scene {
     // @ts-ignore
     this.mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
 
-    // console.log(this.map.widthInPixels, this.map.heightInPixels);
     this.rt = this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
 
-
-    // create render texture
     // @ts-ignore
     this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls.setCollisionByProperty({ collides: true });
+    // //@ts-ignore
+    // const board = CreateBoardFromTilemap(this.map, [this.mapFloor, this.mapWalls]);
+    // console.log(board);
+    // board.
+
+
+
+    //Walkability matrix. Zero is walkable, One is not
+    // var matrix = [
+    //   [0, 0, 1, 0, 0],
+    //   [0, 0, 1, 0, 0],
+    //   [0, 0, 0, 0, 0],
+    //   [0, 0, 1, 0, 0],
+    // ];
+    // console.log(matrix);
+    
+    // var grid = new PF.Grid(matrix);
+    // var finder = new PF.AStarFinder();
+    // //Find path from (1, 2) to (4, 2)
+    // var path = finder.findPath(0, 0, 4, 3, grid);
+
+    // https://fantasysphere.games/devlogs/page/2/
+    // console.log('kjbiubku');
+    // console.log(this.mapFloor.getTilesWithinWorldXY(300, 250, 1, 1));
+
     this.camera.setZoom(4);
 
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -202,7 +230,7 @@ export class Game extends Scene {
     //   //   panningModel: 'equalpower',
     //   //   //rolloffFactor: 0,
     //   //   // maxDistance:0.01,
-    //   //   //follow:this.player.sprite, 
+    //   //   //follow:this.player.sprite,
     //   //   //distanceModel: 'inverse',
     //   //   refDistance: 100000,
     //   //   maxDistance: 100001
@@ -211,6 +239,7 @@ export class Game extends Scene {
     // @ts-ignore
     this.sound.setListenerPosition(spawnPoint.x, spawnPoint.y);
     this.player.sprite.body.setCollideWorldBounds(true);
+    this.initPathfindingMatrix();
     this.spawnEnemies();
 
     // @ts-ignore
@@ -223,7 +252,42 @@ export class Game extends Scene {
     //this.createVignette()
     this.createHorrifyFx();
     this.createInput();
-    //this.noSpatial();
+  }
+
+  initPathfindingMatrix() {
+    this.matrix = [];
+    this.mapWalls?.layer.data.forEach((row: Phaser.Tilemaps.Tile[]) => {
+      this.matrix.push(row.map((entryTile: Phaser.Tilemaps.Tile) => {
+        return entryTile.collides ? 1 : 0;
+      }))
+    });
+  }
+
+  getEnemyDirection(enemyPosition: Phaser.Math.Vector2): any[] {
+    const playerPosition = this.player.sprite.body.position;
+    try {
+      const pfGrid = new PF.Grid(this.matrix);
+      //   Always: 1,
+      // Never: 2,
+      // IfAtMostOneObstacle: 3,
+      // OnlyWhenNoObstacles: 4
+      const pfFinder = new PF.AStarFinder({
+        diagonalMovement: 4,
+        // allowDiagonal: false,
+        weight: 5
+      });
+
+      const enemyTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(enemyPosition.x, enemyPosition.y, 1, 1);
+      const playerTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(playerPosition.x, playerPosition.y, 1, 1);
+      const enemyTile = enemyTiles[0];
+      const playerTile = playerTiles[0];
+
+      const path = pfFinder.findPath(enemyTile.x, enemyTile.y, playerTile.x, playerTile.y, pfGrid);
+      return path;
+    } catch (e) {
+      console.log('error finding path', e);
+      return [];
+    }
   }
 
   createRenderTexture(width: number, height: number) {
@@ -505,9 +569,9 @@ export class Game extends Scene {
         if (obj === enemyObj.sprite) {
           //console.log('OVERLAP');
           //if (enemyObj.sprite.alpha < 1) {
-            //this.tweens.killTweensOf(enemyObj.sprite);
-            enemyObj.sprite.setAlpha(1);
-            enemyObj.startFlyingTowardsPlayer();
+          //this.tweens.killTweensOf(enemyObj.sprite);
+          enemyObj.sprite.setAlpha(1);
+          enemyObj.startFlyingTowardsPlayer();
           //}
         } else {
           //console.log('NO OVERLAP');

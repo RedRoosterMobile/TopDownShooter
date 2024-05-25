@@ -39,6 +39,7 @@ export default class Player {
   hammerTime: number;
   keyPresses: number[];
   walkingMs: number;
+  grabCircle: Phaser.Geom.Circle;
 
 
   //
@@ -55,6 +56,7 @@ export default class Player {
     this.legs = scene.add
       .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
     this.walkingMs = 0;
+    this.grabCircle = new Phaser.Geom.Circle(0, 0, CLOSE_CIRCLE_RADIUS);
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
@@ -304,6 +306,7 @@ export default class Player {
       this.drawCircle(INNER_CIRCLE_RADIUS);
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
+    this.grabCircle.setPosition(this.sprite.x, this.sprite.y);
 
     // imsgine a point at a distance in front of the player
     var offsetX = Math.cos(sprite.rotation) * 50 * -1;
@@ -397,14 +400,9 @@ export default class Player {
           const foundEnemy = this.scene.enemies.filter((_enemy) => { return enemy === _enemy.sprite })
 
           if (foundEnemy.length) {
-
-            console.log('enemy hit', enemy, foundEnemy[0]);
-
             const ec: Enemy = foundEnemy[0];
-
             // maybe better if not within a certain distance from player
             const distance = Phaser.Math.Distance.BetweenPoints(ec.sprite, this.sprite)
-            console.log(distance);
             if (distance > 20) {
               // special case
               ec.dieFromBullet(bullet.body.velocity.clone());
@@ -412,7 +410,6 @@ export default class Player {
               // this.scene.enemies = this.scene.enemies.filter((_enemy) => { return enemy !== _enemy.sprite })
               this.scene.enemies = this.scene.enemies.filter((_enemy) => enemyObj.id !== _enemy.id)
             }
-            console.log('destory ullets#############################');
 
             // kill bullet
             bullet.destroy();

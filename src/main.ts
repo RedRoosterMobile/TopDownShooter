@@ -8,6 +8,7 @@ import { Game, Types } from "phaser";
 
 import PhaserRaycaster from 'phaser-raycaster'
 import HorrifiPipelinePlugin from 'phaser3-rex-plugins/plugins/horrifipipeline-plugin.js';
+// import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
 
 import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 
@@ -58,7 +59,12 @@ const config: Types.Core.GameConfig = {
                 key: 'PhaserRaycaster',
                 plugin: PhaserRaycaster,
                 mapping: 'raycasterPlugin'
-            }
+            },
+            // {
+            //     key: 'rexBoard',
+            //     plugin: BoardPlugin,
+            //     mapping: 'rexBoard'
+            // },
         ]
     }
 };

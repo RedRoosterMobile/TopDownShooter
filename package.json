@@ -35,6 +35,7 @@
         "webpack-merge": "^5.10.0"
     },
     "dependencies": {
+        "pathfinding": "^0.4.18",
         "phaser": "^3.80.1",
         "phaser-raycaster": "^0.10.10",
         "phaser3-rex-plugins": "^1.80.3"

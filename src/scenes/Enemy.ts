@@ -1,8 +1,9 @@
+import { Vector2 } from "phaser3-rex-plugins/plugins/utils/geom/types";
 import { C_SPATIAL_AUDIO } from "./Constants";
 import { Game } from "./Game";
 import { TilePainter } from "./classes/TilePainter";
 
-const ENEMY_SPEED = 1;
+const ENEMY_SPEED = 2;
 const FLYING_COOLDOWN_MS = 1000;
 
 
@@ -40,7 +41,7 @@ export default class Enemy {
    * @param {*} x
    * @param {*} y
    */
-  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer, id: number) {
+  constructor(scene: Game, x: number, y: number, wallLayer: Phaser.Tilemaps.TilemapLayer, floorLayer: Phaser.Tilemaps.TilemapLayer, id: number, radius: number) {
     this.scene = scene;
     this.collisionLayer = wallLayer;
     this.floorLayer = floorLayer
@@ -63,6 +64,7 @@ export default class Enemy {
       .setMaxVelocity(300, 10000)
       .setScale(Phaser.Math.FloatBetween(1, 1.5))
       .setTint(randomTint)
+      .setFlipY(!!(this.id % 2))
 
     this.magicCircle();
 
@@ -74,6 +76,11 @@ export default class Enemy {
     this.scene.physics.world.addOverlap(this.sprite, floorLayer, (_, floor) => {
       //if (!this.isGrabbing) {
       this.lastFloorTile = floor;
+      //console.log('erger');
+      // @ts-ignore
+      //console.log(floor.x,floor.y);
+      //console.log(floorLayer.getTilesWithinWorldXY(this.sprite.body.position.x, this.sprite.body.position.y, 16, 16)[0]);
+
       //}
     });
 
@@ -86,6 +93,9 @@ export default class Enemy {
     })
 
     this.createAnimations();
+
+    // works from here
+    //this.scene.getEnemyDirection(this.sprite.body.position);
   }
 
   createAnimations() {
@@ -149,6 +159,13 @@ export default class Enemy {
       // this.isGrabbing = true;
     }
 
+
+
+    // idea:
+    // move this to player, so we can better check for other grabbers
+    // and make the all grabbers rotate with the player
+    // add a caontainer to he player? less hustle?
+    // add them temporaily to the container    
     if (this.isGrabbing) {
       // attach the zombie to the player at a distance of 15
       //Phaser.Actions.PlaceOnCircle()
@@ -158,9 +175,10 @@ export default class Enemy {
         Phaser.Math.FloatBetween(0.1, 0.01),
         10
       );
-      // Phaser.Actions.PlaceOnCircle([this.sprite],)
+      //Phaser.Actions.PlaceOnCircle([this.sprite], this.scene.player.grabCircle, this.id, this.id + 0.01)
       this.magicCircle(0.001);
-      this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2, this.sprite.y + Math.cos(time / 300) * 2);
+      const direction = this.id % 2 ? -1 : 1;
+      this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2 * direction, this.sprite.y + Math.cos(time / 300) * 2 * direction);
 
       //this.sprite.disableBody();
     }
@@ -179,7 +197,7 @@ export default class Enemy {
         // wait...
 
         this.scene.zombieSfx.play(
-          Phaser.Math.Between(0, 11) + '', {
+          Phaser.Math.Between(1, 11) + '', {
           rate: Phaser.Math.FloatBetween(0.7, 1),
           detune: Phaser.Math.FloatBetween(0, 50),
           source: {
@@ -201,17 +219,42 @@ export default class Enemy {
         //   }
         // });
       }
-      const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
-      let rotation = Phaser.Math.Angle.Between(sprite.x, sprite.y, pointToHere.x, pointToHere.y);
-      sprite.setRotation(rotation);
+
+      if (!this.isWalking) {
+        this.facePlayer();
+      }
 
       // Calculate the velocity in the x and y directions
-      if (!this.isFlying || !this.isGrabbing) {
-        let speed = delta * ENEMY_SPEED; // Set the speed at which the sprite should move
-        let velocityX = Math.cos(rotation) * speed;
-        let velocityY = Math.sin(rotation) * speed;
-        // Set the velocity of the sprite
-        sprite.setVelocity(velocityX, velocityY);
+      if ((!this.isFlying || !this.isGrabbing)) {
+        let speed = delta * Phaser.Math.FloatBetween(ENEMY_SPEED/2,ENEMY_SPEED) ; // Set the speed at which the sprite should move
+        // let velocityX = Math.cos(rotation) * speed;
+        // let velocityY = Math.sin(rotation) * speed;
+        // // Set the velocity of the sprite
+        // sprite.setVelocity(velocityX, velocityY);
+        const path = this.scene.getEnemyDirection(this.sprite.body.position);
+
+        if (path.length && path[1]) {
+          // const targetGridPos = path[1] as Phaser.Math.Vector2;
+          const tile = this.scene.mapFloor.getTileAt(path[1][0], path[1][1]);
+          const targetPoint = new Phaser.Math.Vector2(tile.pixelX, tile.pixelY);
+          const rotation = Phaser.Math.Angle.BetweenPoints(this.sprite.body.position, targetPoint);
+          let velocityX = Math.cos(rotation) * speed;
+          let velocityY = Math.sin(rotation) * speed;
+          sprite.setRotation(rotation);
+          // Set the velocity of the sprite
+          sprite.setVelocity(velocityX, velocityY);
+        } else {
+          // face player and old way
+          // const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
+          // let rotation = Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, pointToHere.x, pointToHere.y);
+          let rotation = Phaser.Math.Angle.BetweenPoints(this.sprite.body.position, this.scene.player.sprite.body.position);
+          let velocityX = Math.cos(rotation) * speed;
+          let velocityY = Math.sin(rotation) * speed;
+          sprite.setRotation(rotation);
+          // Set the velocity of the sprite
+          sprite.setVelocity(velocityX, velocityY);
+          //this.facePlayer();
+        }
       }
 
 
@@ -219,7 +262,7 @@ export default class Enemy {
         this.sprite.setAcceleration(0.0);
         this.sprite.play('wiggle', true);
 
-
+        this.facePlayer();
 
         // this.sprite.setVelocity(0, 0);
 
@@ -241,6 +284,12 @@ export default class Enemy {
 
     }
 
+  }
+
+  facePlayer() {
+    const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);
+    let rotation = Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, pointToHere.x, pointToHere.y);
+    this.sprite.setRotation(rotation);
   }
 
   startWalking() {
@@ -304,30 +353,17 @@ export default class Enemy {
           this.sprite.copyPosition(this.scene.player.sprite);
         }
         this.isWalking = true;
-
-        // get tile at
       })
-
-      // this.scene.tweens.add({
-      //   targets: this.sprite,
-      //   x: this.scene.player.sprite.x + Phaser.Math.Between(-40, 40),
-      //   y: this.scene.player.sprite.y + Phaser.Math.Between(-40, 40),
-      //   ease: 'Power2',
-      //   duration: 500,
-      //   repeat: 0,
-      //   onComplete: () => {
-      //     // done grabbing
-
-      //   }
-      // })
     }
-    // this.scene.player.attachedEnemies.push(this.id);
   }
 
   startFlyingTowardsPlayer() {
     if (this.isGrabbing) {
       return;
     }
+    // FIXME:
+    // weird, this needs to be here..
+    // time for a state machine?
     this.isGrabbing = false;
     this.isWalking = false;
     this.isFlying = true;
@@ -357,6 +393,8 @@ export default class Enemy {
         }
       })
       this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
+    } else {
+      // this.startWalking();
     }
   }
 
