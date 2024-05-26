@@ -11,6 +11,7 @@ export default class Enemy {
   scene: Game;
   collisionLayer: Phaser.Tilemaps.TilemapLayer;
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+  displaySprite: Phaser.GameObjects.Sprite;
   keys: object;
   targetAngle: number;
   public offset: number;
@@ -25,6 +26,8 @@ export default class Enemy {
   timeToNextGroan: number;
   id: number;
   floorLayer: Phaser.Tilemaps.TilemapLayer;
+  spriteScale: number;
+  t: number;
 
   magicCircle(magicScaler = 0.300) {
     const width = this.sprite.width;
@@ -55,14 +58,22 @@ export default class Enemy {
     //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
     const randomTint = Phaser.Utils.Array.GetRandom(array);
     // Create the physics-based sprite that we will move around and animate
+    this.spriteScale = Phaser.Math.FloatBetween(1, 1.5);
+    this.t = Phaser.Math.FloatBetween(0, ENEMY_SPEED);
     this.sprite = scene.physics.add
       .sprite(x, y, "enemy", "enemy1.png")
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000)
-      .setScale(Phaser.Math.FloatBetween(1, 1.5))
-      .setTint(randomTint)
+      .setScale(this.spriteScale)
       .setFlipY(!!(this.id % 2))
+      .setVisible(false)
+
+    this.displaySprite = scene.add
+      .sprite(x, y, "enemy", "enemy1.png")
+      .setOrigin(0.5, 0.5)
+      .setTint(randomTint)
+      .setDisplaySize(this.sprite.displayWidth, this.sprite.displayHeight)
 
     this.magicCircle();
 
@@ -97,10 +108,10 @@ export default class Enemy {
   }
 
   createAnimations() {
-    this.sprite.anims.create({
+    this.displaySprite.anims.create({
       key: "wiggle",
       frameRate: 10,
-      frames: this.sprite.anims.generateFrameNames("enemy", {
+      frames: this.displaySprite.anims.generateFrameNames("enemy", {
         start: 1,
         end: 2,
         prefix: "enemy",
@@ -108,10 +119,10 @@ export default class Enemy {
       }),
       repeat: -1
     });
-    this.sprite.anims.create({
+    this.displaySprite.anims.create({
       key: "fly",
       frameRate: 10,
-      frames: this.sprite.anims.generateFrameNames("enemy", {
+      frames: this.displaySprite.anims.generateFrameNames("enemy", {
         start: 3,
         end: 4,
         prefix: "enemy",
@@ -119,10 +130,10 @@ export default class Enemy {
       }),
       repeat: -1
     });
-    this.sprite.anims.create({
+    this.displaySprite.anims.create({
       key: "die_bullet",
       frameRate: 15,
-      frames: this.sprite.anims.generateFrameNames("enemy", {
+      frames: this.displaySprite.anims.generateFrameNames("enemy", {
         start: 5,
         end: 12,
         prefix: "enemy",
@@ -130,13 +141,13 @@ export default class Enemy {
       }),
       repeat: 0
     });
-    this.sprite.play('die_bullet', true);
+    this.displaySprite.play('die_bullet', true);
   }
 
   update(time: number, delta: number) {
 
     if (this.isDead) {
-      this.sprite.play('die_bullet', true);
+      this.displaySprite.play('die_bullet', true);
       return;
     }
 
@@ -167,13 +178,13 @@ export default class Enemy {
     if (this.isGrabbing) {
       // attach the zombie to the player at a distance of 15
       //Phaser.Actions.PlaceOnCircle()
-      Phaser.Actions.RotateAroundDistance(
-        [this.sprite],
-        { x: this.scene.player.sprite.x, y: this.scene.player.sprite.y },
-        Phaser.Math.FloatBetween(0.1, 0.01),
-        10
-      );
-      //Phaser.Actions.PlaceOnCircle([this.sprite], this.scene.player.grabCircle, this.id, this.id + 0.01)
+      // Phaser.Actions.RotateAroundDistance(
+      //   [this.sprite],
+      //   { x: this.scene.player.sprite.x, y: this.scene.player.sprite.y },
+      //   Phaser.Math.FloatBetween(0.1, 0.01),
+      //   10
+      // );
+      Phaser.Actions.PlaceOnCircle([this.sprite], this.scene.player.grabCircle, this.id, this.id + 0.01)
       this.magicCircle(0.001);
       const direction = this.id % 2 ? -1 : 1;
       this.sprite.setPosition(this.sprite.x + Math.sin(time / 300) * 2 * direction, this.sprite.y + Math.cos(time / 300) * 2 * direction);
@@ -224,7 +235,7 @@ export default class Enemy {
 
       // Calculate the velocity in the x and y directions
       if ((!this.isFlying || !this.isGrabbing)) {
-        let speed = delta * Phaser.Math.FloatBetween(ENEMY_SPEED/2,ENEMY_SPEED) ; // Set the speed at which the sprite should move
+        let speed = delta * Phaser.Math.FloatBetween(ENEMY_SPEED / 2, ENEMY_SPEED); // Set the speed at which the sprite should move
         // let velocityX = Math.cos(rotation) * speed;
         // let velocityY = Math.sin(rotation) * speed;
         // // Set the velocity of the sprite
@@ -258,7 +269,7 @@ export default class Enemy {
 
       if (this.isGrabbing) {
         this.sprite.setAcceleration(0.0);
-        this.sprite.play('wiggle', true);
+        this.displaySprite.play('wiggle', true);
 
         this.facePlayer();
 
@@ -278,11 +289,41 @@ export default class Enemy {
         // );
         // this.sprite.setPosition(newX, newY);
       }
-
-
     }
-    // this.sprite.texture.getSourceImage.
 
+    // if this.isGrabbing lerp position and inste4ad
+
+    if (this.isGrabbing) {
+      const delayFactorPos = 0.25;
+      const delayFactorRot = 0.05;
+      // Calculate the new positions with delay
+      const newX = Phaser.Math.Linear(
+        this.displaySprite.x,
+        this.sprite.x,
+        delayFactorPos
+      );
+      const newY = Phaser.Math.Linear(
+        this.displaySprite.y,
+        this.sprite.y,
+        delayFactorPos
+      );
+      const newRotation = Phaser.Math.Linear(
+        this.displaySprite.rotation,
+        this.sprite.rotation,
+        delayFactorRot
+      );
+      this.displaySprite
+        .setPosition(newX, newY)
+        .setRotation(newRotation)
+        .setScale(this.spriteScale + Math.sin(time / (40 + this.t)) * 0.1)
+    } else {
+
+      // this.sprite.texture.getSourceImage.
+      this.displaySprite
+        .setPosition(this.sprite.x, this.sprite.y)
+        .setRotation(this.sprite.rotation)
+        .setScale(this.spriteScale + Math.sin(time / (40 + this.t)) * 0.1)
+    }
   }
 
   facePlayer() {
@@ -296,8 +337,8 @@ export default class Enemy {
       this.isGrabbing = false;
       this.isWalking = true;
       this.isFlying = false;
-      if (this.sprite) {
-        this.sprite.play('wiggle', true);
+      if (this.displaySprite) {
+        this.displaySprite.play('wiggle', true);
       }
     }
 
@@ -308,8 +349,8 @@ export default class Enemy {
     this.isGrabbing = true;
     this.isWalking = false;
     this.isFlying = false;
-    if (this.sprite) {
-      this.sprite.play('wiggle', true);
+    if (this.displaySprite) {
+      this.displaySprite.play('wiggle', true);
     }
     this.scene.player.attachedEnemies.push(this.id);
   }
@@ -325,7 +366,6 @@ export default class Enemy {
       this.flyingCoolDownMs = FLYING_COOLDOWN_MS;
       //@ts-ignore
       this.lastFloorTile = null;
-      //this.sprite.play('wiggle', true);
 
       // const rotation = this.sprite.rotation; // or any angle in radians
       // const accelerationMagnitude = -10000; // Set your desired acceleration magnitude
@@ -375,7 +415,7 @@ export default class Enemy {
 
     if (this.flyingCoolDownMs <= 0 && distToPlayer < 50) {
       console.log('fly');
-      this.sprite.play('fly', true);
+      this.displaySprite.play('fly', true);
       this.sprite.setVelocity(0, 0);
 
       this.scene.tweens.add({
@@ -410,7 +450,7 @@ export default class Enemy {
       }
     });
     this.tilePainter.paintTile(this.lastFloorTile as Phaser.Tilemaps.Tile);
-    this.sprite.play('die_bullet', true);
+    this.displaySprite.play('die_bullet', true);
     const randomSlowdown = Phaser.Math.FloatBetween(0.2, 1);
     this.sprite.body.velocity.x *= randomSlowdown;
     this.sprite.body.velocity.y *= randomSlowdown;
@@ -448,7 +488,7 @@ export default class Enemy {
 
     }).setPosition(this.sprite.x, this.sprite.y);
     this.scene.time.delayedCall(200, () => {
-      this.sprite.play('die_bullet', Phaser.Math.FloatBetween(0, 1) > 0.75 ? true : false);
+      this.displaySprite.play('die_bullet', Phaser.Math.FloatBetween(0, 1) > 0.75 ? true : false);
       emitter.stop();
       graphics.lineTo(this.sprite.x + Phaser.Math.Between(-15, 15), this.sprite.y + Phaser.Math.Between(-1, 1));
       //graphics.strokeCircle(this.sprite.x + (odds % 2 ? -5 : 5), this.sprite.y + (odds % 2 ? -5 : 5), 5);
@@ -457,11 +497,12 @@ export default class Enemy {
       timerEvent.destroy();
       this.sprite.body.destroy();
       this.scene.time.delayedCall(500, () => {
-        this.sprite.play('die_bullet', true);
+        this.displaySprite.play('die_bullet', true);
         this.scene.time.delayedCall(500, () => {
           // all stuff to render texture
-          this.scene.rt.draw(this.sprite, this.sprite.x, this.sprite.y);
+          this.scene.rt.draw(this.displaySprite, this.displaySprite.x, this.displaySprite.y);
           this.sprite.setVisible(false).destroy();
+          this.displaySprite.destroy();
           this.scene.rt.draw(graphics);
           graphics.destroy();
         });
@@ -484,6 +525,7 @@ export default class Enemy {
     this.isGrabbing = false;
     this.isWalking = false;
     this.isFlying = false;
+    this.displaySprite.destroy();
     this.sprite.destroy();
   }
 }

@@ -54,6 +54,10 @@ until space is let go, then back to normal
 WFC generate dungeons
 https://github.com/kchapelier/wavefunctioncollapse
 
+virtual joystick
+https://rexrainbow.github.io/phaser3-rex-notes/docs/site/virtualjoystick/
+
+
 Permanence:
 - bullets,
 - footprints

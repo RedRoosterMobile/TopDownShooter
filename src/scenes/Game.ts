@@ -149,11 +149,11 @@ export class Game extends Scene {
 
     this.camera = this.cameras.main;
     this.rotateCameraTime = 0;
-    //this.camera.setBackgroundColor(0x00ff00);
+    this.camera.setBackgroundColor(0x00ff00);
     //this.camera.setBackgroundColor(0x000000);
 
-    this.background = this.add.image(512, 384, 'background');
-    this.background.setAlpha(0.5);
+    //  this.background = this.add.image(512, 384, 'background');
+    //  this.background.setAlpha(0.5);
     this.enemies = [];
 
 
@@ -338,7 +338,7 @@ export class Game extends Scene {
     this.enemies.push(enemy);
   }
   createHorrifyFx() {
-    return;
+    
     const horrifySettings = {
       vhsStrength: 0.05,
       scanlineStrength: 0.1,
@@ -386,6 +386,14 @@ export class Game extends Scene {
     pipeline.setVignetteStrength(horrifySettings.vignetteStrength);
     // @ts-ignore
     pipeline.setVignetteIntensity(horrifySettings.vignetteIntensity);
+
+
+    // // makes everything super dark...
+    // // @ts-ignore
+    // pipeline.setChromaticEnable(true)
+    // // @ts-ignore
+    // pipeline.setChabIntensity(horrifySettings.chabIntensity)
+
 
 
     // @ts-ignore

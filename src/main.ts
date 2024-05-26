@@ -25,7 +25,7 @@ const config: Types.Core.GameConfig = {
     antialiasGL: false,
     parent: 'game-container',
     //backgroundColor: '#028af8',
-    backgroundColor: '#00ff00',
+    //backgroundColor: '#00ff00',
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
