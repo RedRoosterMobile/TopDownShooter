@@ -109,7 +109,7 @@ export default class Player {
     this.hammerTime = 0;
 
     // Track the arrow keys & WASD
-    const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE } =
+    const { LEFT, RIGHT, UP, DOWN, W, A, D, SPACE, C } =
       Phaser.Input.Keyboard.KeyCodes;
 
     if (DEBUG_CIRCLES) {
@@ -132,7 +132,8 @@ export default class Player {
       w: W,
       a: A,
       d: D,
-      space: SPACE
+      space: SPACE,
+      c: C
     }) : {};
 
     this.createAnimations();
@@ -246,55 +247,32 @@ export default class Player {
       this.walkingMs += delta;
     }
 
-    let playerViewDirection = 0;
-
     // only srtrafe when going backwards?
     // @ts-ignore
-    const isStrafing = isMoving && this.keys.space.isDown;
+    const isStrafing =  this.keys.space.isDown && this.keys.c.isDown;
 
-    if (isStrafing) {
-      // let angle = Phaser.Math.DegToRad(this.sprite.angle + 45); // Convert to radians and adjust by 90 degrees
-      console.log(this.sprite.angle);
-      // @ts-ignore
-      if (this.keys.left.isDown) {
-        moveX = -1;
-        moveY = -1;
-        // @ts-ignore
-      } else if (this.keys.right.isDown) {
-        moveX = 1;
-        moveY = 1;
-      }
-      // @ts-ignore
-      if (this.keys.up.isDown) {
-        moveX = -1;
-        moveY = 1;
-        // @ts-ignore
-      } else if (this.keys.down.isDown) {
-        moveX = 1;
-        moveY = -1;
-      }
-    } else {
 
-      // @ts-ignore
-      if (this.keys.left.isDown) {
-        moveX = -1;
-        // @ts-ignore
-      } else if (this.keys.right.isDown) {
-        moveX = 1;
-      }
 
+    // @ts-ignore
+    if (this.keys.left.isDown) {
+      moveX = -1;
       // @ts-ignore
-      if (this.keys.up.isDown) {
-        moveY = -1;
-        // @ts-ignore
-      } else if (this.keys.down.isDown) {
-        moveY = 1;
-      }
+    } else if (this.keys.right.isDown) {
+      moveX = 1;
+    }
+
+    // @ts-ignore
+    if (this.keys.up.isDown) {
+      moveY = -1;
+      // @ts-ignore
+    } else if (this.keys.down.isDown) {
+      moveY = 1;
     }
 
 
+
     if (isStrafing) {
-      console.log(this.sprite.angle);
+      //console.log(this.sprite.angle);
       // -180 left
       //    0  right
       //  -90  up
@@ -335,6 +313,7 @@ export default class Player {
         // Lerp the sprite's rotation towards the target angle
         const t = delta / 100; // Adjust the speed of rotation
         const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
+
 
         sprite.setRotation(nextAngle);
         this.nextAngle = nextAngle;
