@@ -192,13 +192,13 @@ export class Game extends Scene {
       .setTint(0x00000)
       // 2 px to tilesize
       .setDisplaySize(18, 18);
-      // @ts-ignore
+    // @ts-ignore
     this.mapWalls.forEachTile((tile) => {
       if (
         tile.pixelX &&
         tile.collides
       ) {
-        this.rtBg.draw(whiteSprite, tile.pixelX+8, tile.pixelY+8)
+        this.rtBg.draw(whiteSprite, tile.pixelX + 8, tile.pixelY + 8)
       }
     });
     whiteSprite.destroy();
@@ -261,6 +261,9 @@ export class Game extends Scene {
     this.initPathfindingMatrix();
     this.spawnEnemies();
 
+
+
+
     // @ts-ignore
     this.physics.world.addCollider(this.player.sprite, this.mapWalls);
 
@@ -271,6 +274,26 @@ export class Game extends Scene {
     //this.createVignette()
     this.createHorrifyFx();
     this.createInput();
+
+    // @ts-ignore
+    window.ss = () => {
+      const sk = Phaser.Math.Between(8, 11) + '';
+      //const sk = '1';
+      console.log('sskalier', sk, this.zombieSfx);
+      this.zombieSfx.play(
+        sk, {
+        //rate: Phaser.Math.FloatBetween(0.7, 1),
+        //detune: Phaser.Math.FloatBetween(0, 50),
+        volume: 1,
+        source: {
+          x: this.player.sprite.x,
+          y: this.player.sprite.y,
+          ...C_SPATIAL_AUDIO
+        },
+
+        loop: false
+      });
+    }
   }
 
   initPathfindingMatrix() {
@@ -338,7 +361,7 @@ export class Game extends Scene {
     this.enemies.push(enemy);
   }
   createHorrifyFx() {
-    
+
     const horrifySettings = {
       vhsStrength: 0.05,
       scanlineStrength: 0.1,

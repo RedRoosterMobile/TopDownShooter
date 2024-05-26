@@ -163,9 +163,10 @@ export default class Enemy {
       this.sprite.x,
       this.sprite.y
     );
-    if (distToPlayer < 15) {
+    if (distToPlayer < 50) {
       // debatable..
       // this.isGrabbing = true;
+      this.facePlayer();
     }
 
 
@@ -205,17 +206,22 @@ export default class Enemy {
         // only do this if:
         // wait...
 
-        this.scene.zombieSfx.play(
-          Phaser.Math.Between(1, 11) + '', {
-          rate: Phaser.Math.FloatBetween(0.7, 1),
-          detune: Phaser.Math.FloatBetween(0, 50),
-          source: {
-            x: this.sprite.x,
-            y: this.sprite.y,
-            ...C_SPATIAL_AUDIO
-          },
-          loop: false
-        });
+        // 1-5  normal
+        // 6-7  attack
+        // 8-11 die
+        if (!this.isFlying) {
+          this.scene.zombieSfx.play(
+            Phaser.Math.Between(1, 5) + '', {
+            rate: Phaser.Math.FloatBetween(0.7, 1),
+            detune: Phaser.Math.FloatBetween(0, 50),
+            source: {
+              x: this.sprite.x,
+              y: this.sprite.y,
+              ...C_SPATIAL_AUDIO
+            },
+            loop: false
+          });
+        }
 
 
         // this.scene.sound.play("zombie", {
@@ -317,7 +323,6 @@ export default class Enemy {
         .setRotation(newRotation)
         .setScale(this.spriteScale + Math.sin(time / (40 + this.t)) * 0.1)
     } else {
-
       // this.sprite.texture.getSourceImage.
       this.displaySprite
         .setPosition(this.sprite.x, this.sprite.y)
@@ -415,6 +420,20 @@ export default class Enemy {
 
     if (this.flyingCoolDownMs <= 0 && distToPlayer < 50) {
       console.log('fly');
+      // 1-5  normal
+      // 6-7  attack
+      // 8-11 die
+      this.scene.zombieSfx.play(
+        Phaser.Math.Between(6, 7) + '', {
+        rate: Phaser.Math.FloatBetween(0.7, 1),
+        detune: Phaser.Math.FloatBetween(0, 50),
+        source: {
+          x: this.sprite.x,
+          y: this.sprite.y,
+          ...C_SPATIAL_AUDIO
+        },
+        loop: false
+      });
       this.displaySprite.play('fly', true);
       this.sprite.setVelocity(0, 0);
 
@@ -440,6 +459,22 @@ export default class Enemy {
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
+    // 1-5  normal
+    // 6-7  attack
+    // 8-11 die
+
+    this.scene.zombieSfx.play(
+      Phaser.Math.Between(8, 11) + '', {
+      rate: Phaser.Math.FloatBetween(0.7, 1),
+      detune: Phaser.Math.FloatBetween(0, 50),
+      source: {
+        x: this.sprite.x,
+        y: this.sprite.y,
+        ...C_SPATIAL_AUDIO
+      },
+      loop: false
+    });
+
     this.scene.sound.play("explodeBody", {
       rate: Phaser.Math.FloatBetween(0.7, 1),
       detune: Phaser.Math.FloatBetween(0, 50),
