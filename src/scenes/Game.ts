@@ -53,6 +53,7 @@ export class Game extends Scene {
   enemyId: number;
   zombieSfx: Phaser.Sound.WebAudioSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound;
   matrix: any;
+  rtBg: Phaser.GameObjects.RenderTexture;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -172,8 +173,13 @@ export class Game extends Scene {
       "CosmicLilac_Tiles",
       "tiles"
     );
+
+
+    this.rtBg = this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
+
     // @ts-ignore
-    this.mapFloor = this.map.createLayer("floor", tiles).setPipeline('Light2D');
+    this.mapFloor = this.map.createLayer("floor", tiles)
+      .setPipeline('Light2D');
 
     this.rt = this.createRenderTexture(this.map.widthInPixels, this.map.heightInPixels);
 
@@ -181,6 +187,21 @@ export class Game extends Scene {
     this.mapWalls = this.map.createLayer("walls", tiles);//.setPipeline('Light2D');
     // @ts-ignore
     this.mapWalls.setCollisionByProperty({ collides: true });
+
+    const whiteSprite = this.add.image(0, 0, '__WHITE')
+      .setTint(0x00000)
+      // 2 px to tilesize
+      .setDisplaySize(18, 18);
+      // @ts-ignore
+    this.mapWalls.forEachTile((tile) => {
+      if (
+        tile.pixelX &&
+        tile.collides
+      ) {
+        this.rtBg.draw(whiteSprite, tile.pixelX+8, tile.pixelY+8)
+      }
+    });
+    whiteSprite.destroy();
     // //@ts-ignore
     // const board = CreateBoardFromTilemap(this.map, [this.mapFloor, this.mapWalls]);
     // console.log(board);

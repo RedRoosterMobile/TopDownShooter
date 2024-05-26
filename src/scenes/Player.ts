@@ -6,6 +6,7 @@ const BULLET_VELOCITY = 250 * 2;
 const SHELL_VELOCITY_MIN = 130;
 const SHELL_VELOCITY_MAX = 170;
 const SHOOTING_FREQUENCY = 200;
+const STRAFING_SHOOTING_FREQUENCY = 150;
 const weaponScreenshake = 0.00025 * 2;
 const weaponKnockback = 50;
 const walkingDustPauseMs = 40
@@ -14,7 +15,6 @@ const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
 const GRABBING_KEY_PRESS_TIME = 104 * 20;
 const MIN_WALK_SPEED = 50;
-const HAMMER_TIME = 1000;
 const DEBUG_CIRCLES = true;
 const CLOSE_CIRCLE_RADIUS = 15;
 const INNER_CIRCLE_RADIUS = 50;
@@ -29,6 +29,7 @@ export default class Player {
   public offset: number;
   public nextAngle: number;
   allowShooting: boolean;
+  isStrafing: boolean;
   timerEvent: Phaser.Time.TimerEvent;
   legs: Phaser.GameObjects.Sprite;
   innerCircleGaphics: Phaser.GameObjects.Graphics;
@@ -40,7 +41,7 @@ export default class Player {
   keyPresses: number[];
   walkingMs: number;
   grabCircle: Phaser.Geom.Circle;
-
+  displaySprite: Phaser.GameObjects.Sprite;
 
   //
   /**
@@ -57,6 +58,7 @@ export default class Player {
       .sprite(x, y, "legs", "sprWaiterLegs_2.png").setScale(0.65)
     this.walkingMs = 0;
     this.grabCircle = new Phaser.Geom.Circle(0, 0, CLOSE_CIRCLE_RADIUS);
+    this.isStrafing = false;
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
@@ -64,11 +66,12 @@ export default class Player {
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
-    // this.sprite = scene.physics.add
-    //   .sprite(x, y, "player", 'player2.png')
-    //   .setDrag(500, 500)
-    //   .setOrigin(0.5, 0.5)
-    //   .setMaxVelocity(300, 10000);
+    this.displaySprite = scene.add
+      .sprite(x, y, "__WHITE")
+      .setOrigin(0.5, 0.5)
+      .setDisplaySize(this.sprite.displayWidth, this.sprite.displayHeight)
+      .setVisible(false)
+
 
     this.sprite.anims.create({
       key: "walk",
@@ -249,34 +252,34 @@ export default class Player {
 
 
     // @ts-ignore
-    const isStrafing = this.keys.space.isDown && this.keys.c.isDown;
+    this.isStrafing = this.keys.space.isDown && this.keys.c.isDown;
 
 
     // @ts-ignore
     if (this.keys.left.isDown) {
       //moveX = -1;
-      moveX = isStrafing && this.sprite.angle == -180 ? 0 : -1;
+      moveX = this.isStrafing && this.sprite.angle == -180 ? 0 : -1;
       // @ts-ignore
     } else if (this.keys.right.isDown) {
       //moveX = 1;
-      moveX = isStrafing && this.sprite.angle == 0 ? 0 : 1;
+      moveX = this.isStrafing && this.sprite.angle == 0 ? 0 : 1;
     }
 
 
     // only srtrafe when going backwards?
     // @ts-ignore
     if (this.keys.up.isDown) {
-      moveY = isStrafing && this.sprite.angle == -90 ? 0 : -1;
+      moveY = this.isStrafing && this.sprite.angle == -90 ? 0 : -1;
 
       // @ts-ignore
     } else if (this.keys.down.isDown) {
       // moveY = 1;
-      moveY = isStrafing && this.sprite.angle == 90 ? 0 : 1;
+      moveY = this.isStrafing && this.sprite.angle == 90 ? 0 : 1;
     }
 
 
 
-    if (isStrafing) {
+    if (this.isStrafing) {
       //console.log(this.sprite.angle);
       // -180 left
       //    0  right
@@ -285,7 +288,7 @@ export default class Player {
     }
 
     // @ts-ignore
-    if (Phaser.Input.Keyboard.JustDown(this.keys.space) || isStrafing) {
+    if (Phaser.Input.Keyboard.JustDown(this.keys.space) || this.isStrafing) {
       // @ts-ignore
       if (attachedEnemiesCount) {
         this.handleKeyDown(time);
@@ -303,7 +306,7 @@ export default class Player {
       sprite.setVelocityX((moveX / len) * acceleration);
       sprite.setVelocityY((moveY / len) * acceleration);
 
-      if (!isStrafing) {
+      if (!this.isStrafing) {
         // Calculate the target angle
         this.targetAngle = Math.atan2(moveY, moveX);
 
@@ -342,12 +345,13 @@ export default class Player {
     this.grabCircle.setPosition(this.sprite.x, this.sprite.y);
 
 
-    if (!isStrafing) {
+    if (!this.isStrafing) {
       // imsgine a point at a distance in front of the player
       var offsetX = Math.cos(sprite.rotation) * 50 * -1;
       var offsetY = Math.sin(sprite.rotation) * 50 * -1;
       this.scene.cameras.main.setFollowOffset(offsetX, offsetY);
     }
+    this.displaySprite.setPosition(this.sprite.x,this.sprite.y).setRotation(this.sprite.rotation)
   }
 
 
@@ -441,7 +445,7 @@ export default class Player {
     });
 
     // shooting frequency
-    this.scene.time.delayedCall(SHOOTING_FREQUENCY, () => {
+    this.scene.time.delayedCall(this.isStrafing ? STRAFING_SHOOTING_FREQUENCY : SHOOTING_FREQUENCY, () => {
       this.allowShooting = true;
     });
 
