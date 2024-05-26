@@ -247,26 +247,31 @@ export default class Player {
       this.walkingMs += delta;
     }
 
-    // only srtrafe when going backwards?
-    // @ts-ignore
-    const isStrafing =  this.keys.space.isDown && this.keys.c.isDown;
 
+    // @ts-ignore
+    const isStrafing = this.keys.space.isDown && this.keys.c.isDown;
 
 
     // @ts-ignore
     if (this.keys.left.isDown) {
-      moveX = -1;
+      //moveX = -1;
+      moveX = isStrafing && this.sprite.angle == -180 ? 0 : -1;
       // @ts-ignore
     } else if (this.keys.right.isDown) {
-      moveX = 1;
+      //moveX = 1;
+      moveX = isStrafing && this.sprite.angle == 0 ? 0 : 1;
     }
 
+
+    // only srtrafe when going backwards?
     // @ts-ignore
     if (this.keys.up.isDown) {
-      moveY = -1;
+      moveY = isStrafing && this.sprite.angle == -90 ? 0 : -1;
+
       // @ts-ignore
     } else if (this.keys.down.isDown) {
-      moveY = 1;
+      // moveY = 1;
+      moveY = isStrafing && this.sprite.angle == 90 ? 0 : 1;
     }
 
 
