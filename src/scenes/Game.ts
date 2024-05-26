@@ -52,8 +52,6 @@ export class Game extends Scene {
   music: Phaser.Sound.WebAudioSound;
   enemyId: number;
   zombieSfx: Phaser.Sound.WebAudioSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound;
-  pfGrid: any;
-  pfFinder: any;
   matrix: any;
 
   // msg_text: Phaser.GameObjects.Text;
@@ -198,7 +196,7 @@ export class Game extends Scene {
     //   [0, 0, 1, 0, 0],
     // ];
     // console.log(matrix);
-    
+
     // var grid = new PF.Grid(matrix);
     // var finder = new PF.AStarFinder();
     // //Find path from (1, 2) to (4, 2)
@@ -263,7 +261,7 @@ export class Game extends Scene {
     });
   }
 
-  getEnemyDirection(enemyPosition: Phaser.Math.Vector2): any[] {
+  getPathToPlayer(enemyPosition: Phaser.Math.Vector2): any[] {
     const playerPosition = this.player.sprite.body.position;
     try {
       const pfGrid = new PF.Grid(this.matrix);
@@ -273,12 +271,11 @@ export class Game extends Scene {
       // OnlyWhenNoObstacles: 4
       const pfFinder = new PF.AStarFinder({
         diagonalMovement: 4,
-        // allowDiagonal: false,
         weight: 5
       });
 
-      const enemyTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(enemyPosition.x, enemyPosition.y, 1, 1);
-      const playerTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(playerPosition.x, playerPosition.y, 1, 1);
+      const enemyTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(enemyPosition.x, enemyPosition.y, 16, 16);
+      const playerTiles: Phaser.Tilemaps.Tile[] = this.mapFloor.getTilesWithinWorldXY(playerPosition.x, playerPosition.y, 16, 16);
       const enemyTile = enemyTiles[0];
       const playerTile = playerTiles[0];
 
@@ -306,16 +303,21 @@ export class Game extends Scene {
   }
 
   spawnEnemies() {
-    const spawnPointEnemy = this.map.findObject(
+    const spawnPointEnemies = this.map.filterObjects(
       "Objects",
       (obj) => obj.name === ENEMY
     );
+    if (!spawnPointEnemies?.length) {
+      return
+    }
+    const spawnPointEnemy = spawnPointEnemies[Phaser.Math.Between(0, spawnPointEnemies?.length - 1)];
     this.enemyId++;
     // @ts-ignore
-    const enemy = new Enemy(this, spawnPointEnemy?.x, spawnPointEnemy?.y, this.mapWalls, this.mapFloor, this.enemyId)
+    const enemy = new Enemy(this, spawnPointEnemy.x, spawnPointEnemy.y, this.mapWalls, this.mapFloor, this.enemyId);
     this.enemies.push(enemy);
   }
   createHorrifyFx() {
+    return;
     const horrifySettings = {
       vhsStrength: 0.05,
       scanlineStrength: 0.1,

@@ -50,6 +50,10 @@ look up, shoot up by holding space
 keep holding space, to strafe anywhere while pointing up and shooting up
 until space is let go, then back to normal
 
+
+WFC generate dungeons
+https://github.com/kchapelier/wavefunctioncollapse
+
 Permanence:
 - bullets,
 - footprints

@@ -1,9 +1,8 @@
-import { Vector2 } from "phaser3-rex-plugins/plugins/utils/geom/types";
 import { C_SPATIAL_AUDIO } from "./Constants";
 import { Game } from "./Game";
 import { TilePainter } from "./classes/TilePainter";
 
-const ENEMY_SPEED = 2;
+const ENEMY_SPEED = 3;
 const FLYING_COOLDOWN_MS = 1000;
 
 
@@ -15,7 +14,6 @@ export default class Enemy {
   keys: object;
   targetAngle: number;
   public offset: number;
-  public nextAngle: number;
   timerEvent: Phaser.Time.TimerEvent;
   isFlying: boolean;
   isGrabbing: boolean;
@@ -231,7 +229,7 @@ export default class Enemy {
         // let velocityY = Math.sin(rotation) * speed;
         // // Set the velocity of the sprite
         // sprite.setVelocity(velocityX, velocityY);
-        const path = this.scene.getEnemyDirection(this.sprite.body.position);
+        const path = this.scene.getPathToPlayer(this.sprite.body.position);
 
         if (path.length && path[1]) {
           // const targetGridPos = path[1] as Phaser.Math.Vector2;
@@ -283,6 +281,7 @@ export default class Enemy {
 
 
     }
+    // this.sprite.texture.getSourceImage.
 
   }
 

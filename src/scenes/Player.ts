@@ -12,7 +12,7 @@ const walkingDustPauseMs = 40
 
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
-const GRABBING_KEY_PRESS_TIME = 104 * 2;
+const GRABBING_KEY_PRESS_TIME = 104 * 20;
 const MIN_WALK_SPEED = 50;
 const HAMMER_TIME = 1000;
 const DEBUG_CIRCLES = true;
@@ -64,6 +64,11 @@ export default class Player {
       .setDrag(500, 500)
       .setOrigin(0.5, 0.5)
       .setMaxVelocity(300, 10000);
+    // this.sprite = scene.physics.add
+    //   .sprite(x, y, "player", 'player2.png')
+    //   .setDrag(500, 500)
+    //   .setOrigin(0.5, 0.5)
+    //   .setMaxVelocity(300, 10000);
 
     this.sprite.anims.create({
       key: "walk",
@@ -241,24 +246,64 @@ export default class Player {
       this.walkingMs += delta;
     }
 
+    let playerViewDirection = 0;
+
+    // only srtrafe when going backwards?
     // @ts-ignore
-    if (this.keys.left.isDown) {
-      moveX = -1;
+    const isStrafing = isMoving && this.keys.space.isDown;
+
+    if (isStrafing) {
+      // let angle = Phaser.Math.DegToRad(this.sprite.angle + 45); // Convert to radians and adjust by 90 degrees
+      console.log(this.sprite.angle);
       // @ts-ignore
-    } else if (this.keys.right.isDown) {
-      moveX = 1;
+      if (this.keys.left.isDown) {
+        moveX = -1;
+        moveY = -1;
+        // @ts-ignore
+      } else if (this.keys.right.isDown) {
+        moveX = 1;
+        moveY = 1;
+      }
+      // @ts-ignore
+      if (this.keys.up.isDown) {
+        moveX = -1;
+        moveY = 1;
+        // @ts-ignore
+      } else if (this.keys.down.isDown) {
+        moveX = 1;
+        moveY = -1;
+      }
+    } else {
+
+      // @ts-ignore
+      if (this.keys.left.isDown) {
+        moveX = -1;
+        // @ts-ignore
+      } else if (this.keys.right.isDown) {
+        moveX = 1;
+      }
+
+      // @ts-ignore
+      if (this.keys.up.isDown) {
+        moveY = -1;
+        // @ts-ignore
+      } else if (this.keys.down.isDown) {
+        moveY = 1;
+      }
+    }
+
+
+    if (isStrafing) {
+      console.log(this.sprite.angle);
+      // -180 left
+      //    0  right
+      //  -90  up
+      //   90  down
     }
 
     // @ts-ignore
-    if (this.keys.up.isDown) {
-      moveY = -1;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.space) || isStrafing) {
       // @ts-ignore
-    } else if (this.keys.down.isDown) {
-      moveY = 1;
-    }
-
-    // @ts-ignore
-    if (this.keys.space.isDown) {
       if (attachedEnemiesCount) {
         this.handleKeyDown(time);
       }
@@ -275,23 +320,27 @@ export default class Player {
       sprite.setVelocityX((moveX / len) * acceleration);
       sprite.setVelocityY((moveY / len) * acceleration);
 
-      // Calculate the target angle
-      this.targetAngle = Math.atan2(moveY, moveX);
+      if (!isStrafing) {
+        // Calculate the target angle
+        this.targetAngle = Math.atan2(moveY, moveX);
 
-      // Adjust the target angle to ensure shortest rotation
-      const angleDiff = this.targetAngle - sprite.rotation;
-      if (angleDiff > Math.PI) {
-        this.targetAngle -= 2 * Math.PI;
-      } else if (angleDiff < -Math.PI) {
-        this.targetAngle += 2 * Math.PI;
+        // Adjust the target angle to ensure shortest rotation
+        const angleDiff = this.targetAngle - sprite.rotation;
+        if (angleDiff > Math.PI) {
+          this.targetAngle -= 2 * Math.PI;
+        } else if (angleDiff < -Math.PI) {
+          this.targetAngle += 2 * Math.PI;
+        }
+
+        // Lerp the sprite's rotation towards the target angle
+        const t = delta / 100; // Adjust the speed of rotation
+        const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
+
+        sprite.setRotation(nextAngle);
+        this.nextAngle = nextAngle;
+
+        this.legs.play('walk', true);
       }
-
-      // Lerp the sprite's rotation towards the target angle
-      const t = delta / 100; // Adjust the speed of rotation
-      const nextAngle = lerp(sprite.rotation, this.targetAngle, t);
-      sprite.setRotation(nextAngle);
-      this.nextAngle = nextAngle;
-      this.legs.play('walk', true);
     } else {
       sprite.setRotation(this.targetAngle);
       sprite.setVelocityX(0);
@@ -308,10 +357,13 @@ export default class Player {
     }
     this.grabCircle.setPosition(this.sprite.x, this.sprite.y);
 
-    // imsgine a point at a distance in front of the player
-    var offsetX = Math.cos(sprite.rotation) * 50 * -1;
-    var offsetY = Math.sin(sprite.rotation) * 50 * -1;
-    this.scene.cameras.main.setFollowOffset(offsetX, offsetY);
+
+    if (!isStrafing) {
+      // imsgine a point at a distance in front of the player
+      var offsetX = Math.cos(sprite.rotation) * 50 * -1;
+      var offsetY = Math.sin(sprite.rotation) * 50 * -1;
+      this.scene.cameras.main.setFollowOffset(offsetX, offsetY);
+    }
   }
 
 
@@ -367,6 +419,43 @@ export default class Player {
     this.scene.time.delayedCall(3, () => {
       bullet.setFrame("sprBullet2_1.png");
     });
+
+    const randomTintSmoke = Phaser.Utils.Array.GetRandom([0xbbbbbb, 0xaababa, 0xa99999, 0x888888]);
+    //gun smoke
+    const gunSmoke = this.scene.add
+      .image(bullet.x, bullet.y, "sprites", "sprSmoke_0.png")
+      .setVisible(false)
+      .setTint(randomTintSmoke)
+    this.scene.tweens.add({
+      targets: gunSmoke,
+      delay: 200,
+      alpha: {
+        from: Phaser.Math.FloatBetween(0.8, 1),
+        to: Phaser.Math.FloatBetween(0, 0.2)
+      },
+      scale: {
+        from: Phaser.Math.FloatBetween(0.2, 0.01),
+        to: Phaser.Math.FloatBetween(0.8, 1)
+      },
+      easing: Phaser.Math.Easing.Quartic.Out,
+      x: {
+        from: gunSmoke.x,
+        to: gunSmoke.x + Phaser.Math.FloatBetween(-10, 10)
+      },
+      // only up!
+      y: {
+        from: gunSmoke.y,
+        to: gunSmoke.y + Phaser.Math.FloatBetween(-10, 10)
+      },
+      duration: 2000 + Phaser.Math.FloatBetween(-200, -100),
+      onStart: () => {
+        gunSmoke.setVisible(true);
+      },
+      onComplete: () => {
+        gunSmoke.destroy();
+      }
+    });
+
     // shooting frequency
     this.scene.time.delayedCall(SHOOTING_FREQUENCY, () => {
       this.allowShooting = true;
@@ -539,6 +628,8 @@ export default class Player {
       targets: shell,
       scaleX: 2,
       scaleY: 2,
+
+      angle: { from: Phaser.Math.RadToDeg(sprite.rotation), to: Phaser.Math.Between(0, 360) },
       ease: Phaser.Math.Easing.Elastic.In,
       duration: 250 + Phaser.Math.FloatBetween(-50, -50),
       onComplete: () => {
@@ -550,6 +641,7 @@ export default class Player {
           targets: shell,
           scaleX: 1,
           scaleY: 1,
+          alpha: 0.7,
           ease: Phaser.Math.Easing.Back.Out,
           duration: 150 + Phaser.Math.FloatBetween(-50, -50),
         });
