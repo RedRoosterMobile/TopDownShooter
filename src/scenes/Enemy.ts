@@ -532,6 +532,12 @@ export default class Enemy {
       timerEvent.destroy();
       this.sprite.body.destroy();
       this.scene.time.delayedCall(500, () => {
+        // todo: 
+        const footprintTrigger = this.scene.physics.add.image(this.displaySprite.x, this.displaySprite.y, '__WHITE').setScale(2).setVisible(false);
+        this.scene.physics.world.addOverlap(this.scene.player.sprite, footprintTrigger, (_, _footprintTrigger) => {
+          this.scene.player.footprintAlpha = 1;
+          footprintTrigger.destroy();
+        });
         this.displaySprite.play('die_bullet', true);
         this.scene.time.delayedCall(500, () => {
           // all stuff to render texture

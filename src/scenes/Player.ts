@@ -14,6 +14,7 @@ const walkingDustPauseMs = 40
 const WALKING_ACCELLERATION = 120;
 const GRABBING_SLOWDOWN_PER_ENEMY = 10;
 const GRABBING_KEY_PRESS_TIME = 104 * 20;
+const FOOTPRINT_COOLDOWN = 100;
 const MIN_WALK_SPEED = 50;
 const DEBUG_CIRCLES = true;
 const CLOSE_CIRCLE_RADIUS = 15;
@@ -42,6 +43,10 @@ export default class Player {
   walkingMs: number;
   grabCircle: Phaser.Geom.Circle;
   displaySprite: Phaser.GameObjects.Sprite;
+  footprintSprite: Phaser.GameObjects.Image;
+  footprintStep: boolean;
+  timeToFootprint: number;
+  footprintAlpha: number;
 
   //
   /**
@@ -59,6 +64,10 @@ export default class Player {
     this.walkingMs = 0;
     this.grabCircle = new Phaser.Geom.Circle(0, 0, CLOSE_CIRCLE_RADIUS);
     this.isStrafing = false;
+    this.footprintSprite = this.scene.add.image(0, 0., 'sprites', 'sprExplosion_1.png').setDisplaySize(6, 3).setTint(0xff0000);
+    this.footprintStep = true;
+    this.footprintAlpha = 0;
+    this.timeToFootprint = FOOTPRINT_COOLDOWN;
 
     // Create the physics-based sprite that we will move around and animate
     this.sprite = scene.physics.add
@@ -351,7 +360,36 @@ export default class Player {
       var offsetY = Math.sin(sprite.rotation) * 50 * -1;
       this.scene.cameras.main.setFollowOffset(offsetX, offsetY);
     }
-    this.displaySprite.setPosition(this.sprite.x,this.sprite.y).setRotation(this.sprite.rotation)
+    this.displaySprite.setPosition(this.sprite.x, this.sprite.y).setRotation(this.sprite.rotation);
+    // TODO: add footprints
+
+    if (this.timeToFootprint <= 0) {
+      const array = [0xff0000, 0x990000, 0xaa0000, 0xff1010];
+      //const array = [0x000000, 0x00ffff, 0x00ff00, 0xff0000];
+      const randomTint = Phaser.Utils.Array.GetRandom(array);
+      // Set the rotation of the footprint sprite to match the player's rotation
+      this.footprintSprite.setRotation(this.sprite.rotation).setTint(randomTint).setAlpha(this.footprintAlpha);
+
+      // Calculate the offset for the footsteps
+      const stepDistance = 3; // Distance of the footsteps from the player's position
+      const stepOffset = this.footprintStep ? stepDistance : -stepDistance;
+
+      // Calculate the offset based on the player's rotation
+      const offsetX = Math.sin(this.sprite.rotation) * stepOffset;
+      const offsetY = -Math.cos(this.sprite.rotation) * stepOffset;
+
+      // Draw the footprint at the calculated offset position
+      this.scene.rt.draw(this.footprintSprite, this.sprite.x + offsetX, this.sprite.y + offsetY);
+
+      // Set the cooldown for the next footprint
+      this.timeToFootprint = FOOTPRINT_COOLDOWN;
+
+      // Toggle the footprint step
+      this.footprintStep = !this.footprintStep;
+      this.footprintAlpha -= 0.02;
+    } else {
+      this.timeToFootprint -= delta;
+    }
   }
 
 
