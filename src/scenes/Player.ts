@@ -386,7 +386,7 @@ export default class Player {
 
       // Toggle the footprint step
       this.footprintStep = !this.footprintStep;
-      this.footprintAlpha -= 0.02;
+      this.footprintAlpha -= 0.1;
     } else {
       this.timeToFootprint -= delta;
     }

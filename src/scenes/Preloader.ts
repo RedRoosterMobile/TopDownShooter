@@ -80,6 +80,18 @@ export class Preloader extends Scene {
       "enemy.json"
     );
 
+    this.load.aseprite(
+      "ae_enemy",
+      "art/enemy-Sheet.png",
+      "enemy_aesprite_export.json"
+    );
+
+    // const sprite = this.add.sprite(400, 300);
+
+    // sprite.anims.createFromAseprite('ae_enemy');
+    // // tag name
+    // sprite.play('fly');
+
 
   }
 
