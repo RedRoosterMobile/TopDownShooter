@@ -8,6 +8,8 @@ import { Game, Types } from "phaser";
 
 import PhaserRaycaster from 'phaser-raycaster'
 import HorrifiPipelinePlugin from 'phaser3-rex-plugins/plugins/horrifipipeline-plugin.js';
+import VirtualJoystickPlugin from 'phaser3-rex-plugins/plugins/virtualjoystick-plugin.js';
+
 // import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
 
 import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
@@ -48,11 +50,17 @@ const config: Types.Core.GameConfig = {
     // @ts-ignore
     pipeline: [HorrifiPostFx],
     plugins: {
-        global: [{
-            key: 'rexHorrifiPipeline',
-            plugin: HorrifiPipelinePlugin,
-            start: true
-        }],
+        global: [
+            {
+                key: 'rexHorrifiPipeline',
+                plugin: HorrifiPipelinePlugin,
+                start: true
+            },
+            {
+                key: 'rexVirtualJoystick',
+                plugin: VirtualJoystickPlugin,
+                start: true
+            }],
         // https://wiserim.github.io/phaser-raycaster/
         scene: [
             {

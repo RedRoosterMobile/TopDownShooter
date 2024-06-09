@@ -1,6 +1,8 @@
 import { C_SPATIAL_AUDIO } from "./Constants";
 import Enemy from "./Enemy";
 import { Game } from "./Game";
+import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
+
 
 const BULLET_VELOCITY = 250 * 2;
 const SHELL_VELOCITY_MIN = 130;
@@ -47,6 +49,14 @@ export default class Player {
   footprintStep: boolean;
   timeToFootprint: number;
   footprintAlpha: number;
+
+
+  // joystick
+  joyStick: VirtualJoystick;
+  buttonFire: Phaser.GameObjects.Arc;
+  cursorKeys: { up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key; left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key; };
+  fireButtonJustDown: boolean;
+  fireButtonDown: boolean;
 
   //
   /**
@@ -135,6 +145,38 @@ export default class Player {
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
 
+    const joyStickSize = 90 / 3;
+    const base = this.scene.add.circle(0, 0, joyStickSize, 0x888888)
+
+    this.fireButtonDown = false;
+    this.joyStick = new VirtualJoystick(this.scene, {
+      x: 425,
+      y: 440,
+      radius: joyStickSize,
+      base: base,
+      thumb: this.scene.add.circle(0, 0, joyStickSize / 2, 0xcccccc),
+      dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+      // forceMin: 16,
+      // enable: true
+      fixed: true
+    }).setScrollFactor(0);
+
+    this.cursorKeys = this.joyStick.createCursorKeys();
+
+    this.buttonFire = this.scene.add.circle(620, 450, joyStickSize/2).setStrokeStyle(2, 0xff1100).setFillStyle(0xcccccc)
+      .setInteractive()
+      .setScrollFactor(0)
+      .on('pointerdown', () => {
+        console.log('Click Button');
+        this.fireButtonDown = true;
+        this.fireButtonJustDown = true;
+        this.scene.time.delayedCall(50, () => {
+          this.fireButtonJustDown = false;
+        })
+      })
+      .on('pointerup', () => {
+        this.fireButtonDown = false;
+      });
 
     this.keys = scene.input.keyboard ? scene.input.keyboard.addKeys({
       left: LEFT,
@@ -211,6 +253,10 @@ export default class Player {
   }
 
   update(time: number, delta: number) {
+    //this.scene.cameras.main.getWorldPoint()
+    //this.buttonFire.setPosition(this.sprite.x + 100, this.sprite.y + 100)
+    //console.log(this.joyStick,this.joyStick);
+    //this.buttonFire.setPosition(this.scene.cameras.main.scrollX+100,this.scene.cameras.main.scrollY)
 
     const sprite = this.sprite;
     const attachedEnemiesCount = this.attachedEnemies.length;
@@ -220,13 +266,19 @@ export default class Player {
     let moveY = 0;
 
     // @ts-ignore
-    const isMoving = this.keys.left.isDown || this.keys.right.isDown || this.keys.up.isDown || this.keys.down.isDown;
+    const isMoving = this.keys.left.isDown || this.keys.right.isDown || this.keys.up.isDown || this.keys.down.isDown || !this.joyStick.noKey;
+    var leftKeyDown = this.cursorKeys.left.isDown;
+    var rightKeyDown = this.cursorKeys.right.isDown;
+    var upKeyDown = this.cursorKeys.up.isDown;
+    var downKeyDown = this.cursorKeys.down.isDown;
+
+
     isMoving ? this.sprite.anims.play("walk", true) : this.sprite.anims.play("idle", true);
     if (isMoving) {
       if (this.walkingMs >= walkingDustPauseMs) {
         this.walkingMs = 0;
 
-        const playerDirection = this.sprite.body.velocity.clone().normalize();
+        // const playerDirection = this.sprite.body.velocity.clone().normalize();
         const walkingDust = this.scene.add
           .image(
             sprite.x,
@@ -261,15 +313,15 @@ export default class Player {
 
 
     // @ts-ignore
-    this.isStrafing = this.keys.space.isDown && this.keys.c.isDown;
+    this.isStrafing = (this.keys.space.isDown || this.fireButtonDown) && this.keys.c.isDown;
 
 
     // @ts-ignore
-    if (this.keys.left.isDown) {
+    if (this.keys.left.isDown || leftKeyDown) {
       //moveX = -1;
       moveX = this.isStrafing && this.sprite.angle == -180 ? 0 : -1;
       // @ts-ignore
-    } else if (this.keys.right.isDown) {
+    } else if (this.keys.right.isDown || rightKeyDown) {
       //moveX = 1;
       moveX = this.isStrafing && this.sprite.angle == 0 ? 0 : 1;
     }
@@ -277,11 +329,10 @@ export default class Player {
 
     // only srtrafe when going backwards?
     // @ts-ignore
-    if (this.keys.up.isDown) {
+    if (this.keys.up.isDown || upKeyDown) {
       moveY = this.isStrafing && this.sprite.angle == -90 ? 0 : -1;
-
       // @ts-ignore
-    } else if (this.keys.down.isDown) {
+    } else if (this.keys.down.isDown || downKeyDown) {
       // moveY = 1;
       moveY = this.isStrafing && this.sprite.angle == 90 ? 0 : 1;
     }
@@ -297,7 +348,7 @@ export default class Player {
     }
 
     // @ts-ignore
-    if (Phaser.Input.Keyboard.JustDown(this.keys.space) || this.isStrafing) {
+    if ((Phaser.Input.Keyboard.JustDown(this.keys.space) || this.fireButtonJustDown) || this.isStrafing) {
       // @ts-ignore
       if (attachedEnemiesCount) {
         this.handleKeyDown(time);
