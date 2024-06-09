@@ -149,6 +149,7 @@ export default class Player {
     const base = this.scene.add.circle(0, 0, joyStickSize, 0x888888)
 
     this.fireButtonDown = false;
+    this.scene.input.addPointer(1); // to be able to run and shoot at the same time
     this.joyStick = new VirtualJoystick(this.scene, {
       x: 425,
       y: 440,
