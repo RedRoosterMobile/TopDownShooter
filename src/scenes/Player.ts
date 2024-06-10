@@ -145,33 +145,40 @@ export default class Player {
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
 
-    const joyStickSize = 90 / 3;
-    const base = this.scene.add.circle(0, 0, joyStickSize, 0x888888)
+    const joyStickSize = 20;
+
+    const sceneUI = this.scene.scene.manager.getScene("Game") as Game;
+    const base = sceneUI.add.circle(0, 0, joyStickSize, 0x888888).setAlpha(0.5)
 
     this.fireButtonDown = false;
+
     this.scene.input.addPointer(1); // to be able to run and shoot at the same time
-    this.joyStick = new VirtualJoystick(this.scene, {
+    this.joyStick = new VirtualJoystick(sceneUI, {
       x: 425,
       y: 440,
       radius: joyStickSize,
       base: base,
-      thumb: this.scene.add.circle(0, 0, joyStickSize / 2, 0xcccccc),
+      thumb: sceneUI.add.circle(0, 0, joyStickSize / 2, 0xcccccc),
       dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
       // forceMin: 16,
       // enable: true
-      fixed: true
-    }).setScrollFactor(0);
+      fixed: true // same as .setScrollFactor(0)
+    });
 
     this.cursorKeys = this.joyStick.createCursorKeys();
 
-    this.buttonFire = this.scene.add.circle(620, 450, joyStickSize/2).setStrokeStyle(2, 0xff1100).setFillStyle(0xcccccc)
+    this.buttonFire = sceneUI.add.circle(620, 450, joyStickSize)
+      .setStrokeStyle(2, 0xff1100)
+      .setFillStyle(0xcccccc)
       .setInteractive()
       .setScrollFactor(0)
       .on('pointerdown', () => {
         console.log('Click Button');
         this.fireButtonDown = true;
         this.fireButtonJustDown = true;
+        this.buttonFire.setFillStyle(0xaaaaaaa);
         this.scene.time.delayedCall(50, () => {
+          this.buttonFire.setFillStyle(0xcccccc)
           this.fireButtonJustDown = false;
         })
       })
@@ -364,8 +371,8 @@ export default class Player {
     // Normalize the movement vector and scale it by the acceleration
     const len = Math.sqrt(moveX * moveX + moveY * moveY);
     if (len != 0) {
-      sprite.setVelocityX((moveX / len) * acceleration);
-      sprite.setVelocityY((moveY / len) * acceleration);
+      sprite.setVelocityX(Math.floor((moveX / len) * acceleration));
+      sprite.setVelocityY(Math.floor((moveY / len) * acceleration));
 
       if (!this.isStrafing) {
         // Calculate the target angle
@@ -466,6 +473,7 @@ export default class Player {
 
   shootBullet(sprite: Phaser.GameObjects.Sprite) {
     if (!this.allowShooting) return;
+    this.scene.events.emit('test');
 
     this.allowShooting = false;
     this.scene.sound.play("shoot", {
@@ -578,8 +586,7 @@ export default class Player {
               this.scene.enemies = this.scene.enemies.filter((_enemy) => enemyObj.id !== _enemy.id)
             }
 
-            // kill bullet
-            bullet.destroy();
+
             //@ts-ignore
             //this.explosion(ec.sprite);
             // ec.destroy();
@@ -589,8 +596,11 @@ export default class Player {
             this.scene.cameras.main.shake(20, weaponScreenshake);
             timerEvent.destroy();
 
-            light.setVisible(false);
+
           }
+          // kill bullet
+          bullet.destroy();
+          light.setVisible(false);
         });
 
     })
@@ -754,7 +764,9 @@ export default class Player {
     });
 
     const velocity = BULLET_VELOCITY;
-    const inaccuracy = Phaser.Math.FloatBetween(-0.1, 0.1);
+    const accuracyValue = this.isStrafing ? 0.1 : 0.02;
+    const inaccuracy = Phaser.Math.FloatBetween(-accuracyValue, accuracyValue);
+
     // set bullet velocity
     bullet.setVelocity(
       velocity * Math.cos(sprite.rotation + inaccuracy),

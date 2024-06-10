@@ -251,13 +251,15 @@ export default class Enemy {
         if (path.length && path[1]) {
           // const targetGridPos = path[1] as Phaser.Math.Vector2;
           const tile = this.scene.mapFloor.getTileAt(path[1][0], path[1][1]);
-          const targetPoint = new Phaser.Math.Vector2(tile.pixelX, tile.pixelY);
-          const rotation = Phaser.Math.Angle.BetweenPoints(this.sprite.body.position, targetPoint);
-          let velocityX = Math.cos(rotation) * speed;
-          let velocityY = Math.sin(rotation) * speed;
-          sprite.setRotation(rotation);
-          // Set the velocity of the sprite
-          sprite.setVelocity(velocityX, velocityY);
+          if (tile) {
+            const targetPoint = new Phaser.Math.Vector2(tile.pixelX, tile.pixelY);
+            const rotation = Phaser.Math.Angle.BetweenPoints(this.sprite.body.position, targetPoint);
+            let velocityX = Math.cos(rotation) * speed;
+            let velocityY = Math.sin(rotation) * speed;
+            sprite.setRotation(rotation);
+            // Set the velocity of the sprite
+            sprite.setVelocity(velocityX, velocityY);
+          }
         } else {
           // face player and old way
           // const pointToHere = (this.scene.player.sprite as Phaser.GameObjects.Sprite);

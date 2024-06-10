@@ -5,6 +5,7 @@ import HorrifiPostFx from 'phaser3-rex-plugins/plugins/horrifipipeline.js';
 import Player from './Player'
 import PhaserRaycaster from 'phaser-raycaster'
 import Enemy from './Enemy';
+import { UIScene } from "./UIScene";
 import { C_SPATIAL_AUDIO } from './Constants';
 //import 'pathfinding'
 var PF = require('pathfinding');
@@ -54,6 +55,8 @@ export class Game extends Scene {
   zombieSfx: Phaser.Sound.WebAudioSound | Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound;
   matrix: any;
   rtBg: Phaser.GameObjects.RenderTexture;
+  spawnerEvent: Phaser.Time.TimerEvent;
+  uiScene: Scene | null;
 
   // msg_text: Phaser.GameObjects.Text;
 
@@ -236,6 +239,8 @@ export class Game extends Scene {
       (obj) => obj.name === PLAYER_SPAWN
     );
     console.log(spawnPoint);
+
+    this.uiScene = this.scene.add("UIScene", UIScene, true, {});
     // @ts-ignore
     this.player = new Player(this, spawnPoint.x, spawnPoint.y, this.mapWalls);
 
@@ -259,7 +264,7 @@ export class Game extends Scene {
     this.sound.setListenerPosition(spawnPoint.x, spawnPoint.y);
     this.player.sprite.body.setCollideWorldBounds(true);
     this.initPathfindingMatrix();
-    this.spawnEnemies();
+    
 
 
 
@@ -274,26 +279,13 @@ export class Game extends Scene {
     //this.createVignette()
     this.createHorrifyFx();
     this.createInput();
+    this.spawnEnemiesLoop();
 
-    // @ts-ignore
-    window.ss = () => {
-      const sk = Phaser.Math.Between(8, 11) + '';
-      //const sk = '1';
-      console.log('sskalier', sk, this.zombieSfx);
-      this.zombieSfx.play(
-        sk, {
-        //rate: Phaser.Math.FloatBetween(0.7, 1),
-        //detune: Phaser.Math.FloatBetween(0, 50),
-        volume: 1,
-        source: {
-          x: this.player.sprite.x,
-          y: this.player.sprite.y,
-          ...C_SPATIAL_AUDIO
-        },
+    
+  }
 
-        loop: false
-      });
-    }
+  spawnEnemiesLoop() {
+    this.spawnerEvent = this.time.addEvent({ delay: 5000, callback: this.spawnEnemies, repeat:-1, callbackScope: this });
   }
 
   initPathfindingMatrix() {
@@ -360,6 +352,7 @@ export class Game extends Scene {
     const enemy = new Enemy(this, spawnPointEnemy.x, spawnPointEnemy.y, this.mapWalls, this.mapFloor, this.enemyId);
     this.enemies.push(enemy);
   }
+
   createHorrifyFx() {
 
     const horrifySettings = {
