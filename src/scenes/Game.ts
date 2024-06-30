@@ -7,13 +7,14 @@ import PhaserRaycaster from 'phaser-raycaster'
 import Enemy from './Enemy';
 import { UIScene } from "./UIScene";
 import { C_SPATIAL_AUDIO } from './Constants';
+import { Vector } from 'matter';
 //import 'pathfinding'
 var PF = require('pathfinding');
 
 const PLAYER_SPAWN = "Spawn Point";
 const ENEMY = "Enemy";
 const PLAYER_INNER_CONE = 0.45 * Math.PI;
-const INNER_CIRCLE_RADIUS = 16 * 4;
+const INNER_CIRCLE_RADIUS = 50;
 const PLAYER_CONSTANT_LIGHT_CIRCLE = 7.5; // better make it a (rounded) rectangle??
 const FOV_ALPHA_MAIN = 0.8; // higher is darker: was 0.8
 
@@ -264,7 +265,7 @@ export class Game extends Scene {
     this.sound.setListenerPosition(spawnPoint.x, spawnPoint.y);
     this.player.sprite.body.setCollideWorldBounds(true);
     this.initPathfindingMatrix();
-    
+
 
 
 
@@ -280,12 +281,10 @@ export class Game extends Scene {
     this.createHorrifyFx();
     this.createInput();
     this.spawnEnemiesLoop();
-
-    
   }
 
   spawnEnemiesLoop() {
-    this.spawnerEvent = this.time.addEvent({ delay: 5000, callback: this.spawnEnemies, repeat:-1, callbackScope: this });
+    this.spawnerEvent = this.time.addEvent({ delay: 5000, callback: this.spawnEnemies, repeat: -1, callbackScope: this });
   }
 
   initPathfindingMatrix() {
@@ -301,7 +300,7 @@ export class Game extends Scene {
     const playerPosition = this.player.sprite.body.position;
     try {
       const pfGrid = new PF.Grid(this.matrix);
-      //   Always: 1,
+      // Always: 1,
       // Never: 2,
       // IfAtMostOneObstacle: 3,
       // OnlyWhenNoObstacles: 4
@@ -363,7 +362,9 @@ export class Game extends Scene {
       vignetteIntensity: 0.5,
       // NYI below here...
       bloomIntensity: 0.5,
-      crtSize: this.game.config.width,
+
+      // is this affected by zoom???
+      crtSize: Number(this.game.config.width)/4,
       // chromatic abberation
       chabIntensity: 0.2,
     }
@@ -410,8 +411,6 @@ export class Game extends Scene {
     // // @ts-ignore
     // pipeline.setChabIntensity(horrifySettings.chabIntensity)
 
-
-
     // @ts-ignore
     pipeline.setCRTEnable(true);
     // @ts-ignore
@@ -420,14 +419,9 @@ export class Game extends Scene {
 
   createLights() {
     this.lights.enable();
-
-    //this.lights.setAmbientColor(0x808080);
     this.lights.setAmbientColor(FLOOR_LIGHT_TINT.color);
-
     this.light = this.createLight();
     this.light.setPosition(300, 300);
-    // @ts-ignore
-    // window.ll = this.light;
   }
 
   public createLight(): Phaser.GameObjects.Light {
@@ -509,22 +503,18 @@ export class Game extends Scene {
     //topTilemapLayer.setDepth(2);
     this.graphics.setDepth(3);
 
-
     // //enable auto slicing field of view
     this.ray.autoSlice = true;
     // //enable arcade physics body
     this.ray.enablePhysics();
-    // //set collision (field of view) range
-    this.ray.setCollisionRange(INNER_CIRCLE_RADIUS);
+    // set collision (field of view) range
+    // unlimited view distance for now
+    // this.ray.setCollisionRange(INNER_CIRCLE_RADIUS);
 
     //draw rays
     this.drawIntersections();
     // //get objects in field of view
     // visibleObjects = this.ray.overlap(group.getChildren());
-
-
-
-
     // //add overlap collider (require passing ray.processOverlap as process callback)
     // this.physics.add.overlap(
     //   this.ray,
@@ -542,15 +532,16 @@ export class Game extends Scene {
   drawIntersections() {
     //clear field of view mask
     this.maskGraphics.clear();
-    //     let radius = 32;
-    //         let intensity = 1;
-    //         let attenuation = 0.5;
+    // let radius = 32;
+    // let intensity = 0.01;
+    // let attenuation = 0.5;
     // // @ts-ignore
-    //         let light = this.add.pointlight(this.player.sprite.x, this.player.sprite.y, 0, radius, intensity);
-    //         light.color.setTo(255, 255, 255);
-    //         light.attenuation=attenuation;
-    //         console.log(light);
-    //     this.maskGraphics.createBitmapMask(light);
+    // let light = this.add.pointlight(this.player.sprite.x, this.player.sprite.y, 0, radius, intensity);
+    // light.color.setTo(255, 255, 255);
+    // light.attenuation = attenuation;
+    // console.log(light);
+    // this.maskGraphics.createBitmapMask(light);
+
     //draw fov mask
     this.maskGraphics.fillPoints(this.intersections);
     this.maskGraphics.fillCircle(this.player.sprite.x, this.player.sprite.y, PLAYER_CONSTANT_LIGHT_CIRCLE)
@@ -600,52 +591,37 @@ export class Game extends Scene {
       // this.vignetteFx.y = 0.5+zto1;//this.player.sprite.y/Number(this.game.config.height);
 
       // battery low effect:
-      const zto1 = Math.sin(time / 5) * 0.05;
+      const zto1 = Math.sin(time / 5) * 0.5;
       this.vignetteFx.x = 0.5 + zto1;//this.player.sprite.x/Number(this.game.config.width);
       this.vignetteFx.y = 0.5 + zto1;//this.player.sprite.y/Number(this.game.config.height);
 
     }
     this.drawLights();
 
-    //get all game objects in field of view (which bodies overlap ray's field of view)
-
+    // get all game objects in field of view (which bodies overlap ray's field of view)
     // check if object is in field of view and inside ring
-    this.enemies.forEach((enemyObj) => {
-      const allObjects = this.ray.overlap();
-      allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
+    const allObjects = this.ray.overlap();
+    allObjects.forEach((obj: Phaser.GameObjects.GameObject) => {
+      this.enemies.forEach((enemyObj) => {
         if (obj === enemyObj.sprite) {
-          //console.log('OVERLAP');
+          console.log('OVERLAP');
           //if (enemyObj.sprite.alpha < 1) {
-          //this.tweens.killTweensOf(enemyObj.sprite);
-          enemyObj.sprite.setAlpha(1);
-          enemyObj.startFlyingTowardsPlayer();
+          //enemyObj.sprite.setAlpha(1);
+          // do this for outer cone
+          enemyObj.setInCone();
+
+          const distanceToPlayer = Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, enemyObj.sprite.x, enemyObj.sprite.y)
+          if (distanceToPlayer <= INNER_CIRCLE_RADIUS) {
+            enemyObj.startFlyingTowardsPlayer();
+          }
           //}
         } else {
           //console.log('NO OVERLAP');
-          // if (enemyObj.sprite.alpha >= 0.0) {
-          //   // this.tweens.add({
-          //   //   targets: enemyObj.sprite,
-          //   //   alpha: 0,
-          //   //   duration: 5000,
-          //   //   ease: 'Power2'
-          //   // });
-          //   enemyObj.sprite.setAlpha(.5);
-          // }
-
-
+          // ??????
           enemyObj.startWalking();
         }
-
       })
-      // const visibleObjects = this.ray.overlap(enemyObj.sprite);
-      // if (visibleObjects.length) {
-      //   // inner ring!
-      //   // fly towards player
-      //   enemyObj.startFlyingTowardsPlayer();
-      // }
     })
-    //console.log(visibleObjects);
-
   }
 
   drawLights() {
@@ -695,6 +671,8 @@ export class Game extends Scene {
       x + d * Math.cos(rightAngle),
       y + d * Math.sin(rightAngle)
     );
+
+    // check if enemies intersect with light cone here and adjsut their alpha
 
     // geometry,
     this.intersections.push({ x: leftPoint.x, y: leftPoint.y })

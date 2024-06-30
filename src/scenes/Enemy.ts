@@ -28,6 +28,7 @@ export default class Enemy {
   floorLayer: Phaser.Tilemaps.TilemapLayer;
   spriteScale: number;
   t: number;
+  visibilityTween: Phaser.Tweens.Tween;
 
   magicCircle(magicScaler = 0.300) {
     const width = this.sprite.width;
@@ -348,22 +349,20 @@ export default class Enemy {
         this.displaySprite.play('wiggle', true);
       }
     }
-
   }
 
   startGrabbingPlayer() {
-    //
     this.isGrabbing = true;
     this.isWalking = false;
     this.isFlying = false;
     if (this.displaySprite) {
       this.displaySprite.play('wiggle', true);
+      this.resetVisibility();
     }
     this.scene.player.attachedEnemies.push(this.id);
   }
 
   stopGrabbingPlayer() {
-    //
     this.isGrabbing = false;
     this.isWalking = false;
     this.isFlying = false;
@@ -393,7 +392,6 @@ export default class Enemy {
       this.scene.time.delayedCall(300, () => {
         this.sprite.setAcceleration(0, 0).setVelocity(0, 0);
         const aTile = this.floorLayer.getTileAtWorldXY(this.sprite.x, this.sprite.y);
-        console.log(aTile);
         if (!aTile) {
           console.log('offscreen... explode??');
           this.sprite.copyPosition(this.scene.player.sprite);
@@ -458,9 +456,29 @@ export default class Enemy {
     }
   }
 
+  resetVisibility() {
+    if (this.visibilityTween) { this.visibilityTween.destroy() }
+    this.displaySprite.setAlpha(1);
+  }
+
+  setInCone() {
+    this.resetVisibility();
+    if (!this.isDead && !this.isGrabbing) {
+      this.visibilityTween = this.scene.tweens.add({
+        targets: this.displaySprite,
+        alpha: 0,
+        startDelay: 1000,
+        duration: 0,
+        // onComplete: () => {
+        //   console.log('invisible zombie');
+        // }
+      })
+    }
+  }
 
   dieFromBullet(bulletVector: Phaser.Math.Vector2) {
     this.isDead = true;
+    this.resetVisibility();
     // 1-5  normal
     // 6-7  attack
     // 8-11 die

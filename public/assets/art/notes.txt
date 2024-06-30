@@ -123,3 +123,32 @@ https://freesound.org/people/Slave2theLight/sounds/157087/
 steps
 https://freesound.org/people/Slave2theLight/sounds/157038/
 
+
+
+Level design:
+------------
+
+
+general:
+make it scary
+- music 
+- enemy sounds
+- more random enemy attack ranges
+- hide them when not in sight
+
+
+
+chests with keys
+locked doors
+
+enemy spawn triggers
+-> trigger spawmning of zombies on the spawn point closest (A*)
+
+goal: get to exit
+
+difficulty:
+limited bullets
+cooldown times for Strafing
+
+Story:
+
