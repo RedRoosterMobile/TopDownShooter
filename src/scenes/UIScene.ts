@@ -11,6 +11,19 @@ export class UIScene extends Phaser.Scene {
   create() {
     this.mainScene = this.scene.manager.getScene("Game") as Game;
     this.registerEventListeners();
+    // const graphics = this.add.graphics()
+    // graphics.lineStyle(2, 0xff0000, 1); // Set line thickness, color and alpha
+    // //graphics.fillStyle(2, 0xff0000);
+    // graphics.fillStyle(0xff0000, 1); // Set the fill color to red and alpha to 1
+
+
+    // // Draw background rectangle
+    // graphics.fillRect(
+    //   0,
+    //   0,
+    //   100,
+    //   100
+    // );
   }
 
   registerEventListeners() {

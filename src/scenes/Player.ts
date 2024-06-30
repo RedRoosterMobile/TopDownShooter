@@ -145,20 +145,23 @@ export default class Player {
       this.drawCircle(OUTER_CIRCLE_RADIUS);
     }
 
-    const joyStickSize = 20;
-
-    const sceneUI = this.scene.scene.manager.getScene("Game") as Game;
-    const base = sceneUI.add.circle(0, 0, joyStickSize, 0x888888).setAlpha(0.5)
+    const joyStickSize = 100;
+    //@ts-ignore
+    const base = this.scene.uiScene.add.circle(0, 0, joyStickSize, 0x888888).setAlpha(0.5)
 
     this.fireButtonDown = false;
-
+    const borderOffest = 1.681;
     this.scene.input.addPointer(1); // to be able to run and shoot at the same time
-    this.joyStick = new VirtualJoystick(sceneUI, {
-      x: 425,
-      y: 440,
+    const swidth = this.scene.cameras.main.width as Number;
+    const sHeight = Number(this.scene.cameras.main.height);
+    //@ts-ignore
+    this.joyStick = new VirtualJoystick(this.scene.uiScene, {
+      x: 0 + joyStickSize * borderOffest,
+      y: sHeight - joyStickSize * borderOffest,
       radius: joyStickSize,
       base: base,
-      thumb: sceneUI.add.circle(0, 0, joyStickSize / 2, 0xcccccc),
+      //@ts-ignore
+      thumb: this.scene.uiScene.add.circle(0, 0, joyStickSize / 2, 0xcccccc),
       dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
       // forceMin: 16,
       // enable: true
@@ -167,8 +170,11 @@ export default class Player {
 
     this.cursorKeys = this.joyStick.createCursorKeys();
 
-    this.buttonFire = sceneUI.add.circle(620, 450, joyStickSize)
+
+    //@ts-ignore
+    this.buttonFire = this.scene.uiScene.add.circle(swidth - joyStickSize * borderOffest, sHeight - joyStickSize * borderOffest, joyStickSize)
       .setStrokeStyle(2, 0xff1100)
+      .setAlpha(0.5)
       .setFillStyle(0xcccccc)
       .setInteractive()
       .setScrollFactor(0)

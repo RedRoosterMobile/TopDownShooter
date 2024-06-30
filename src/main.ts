@@ -51,16 +51,8 @@ const config: Types.Core.GameConfig = {
   pipeline: [HorrifiPostFx],
   plugins: {
     global: [
-      {
-        key: 'rexHorrifiPipeline',
-        plugin: HorrifiPipelinePlugin,
-        start: true
-      },
-      {
-        key: 'rexVirtualJoystick',
-        plugin: VirtualJoystickPlugin,
-        start: true
-      }],
+
+     ],
     // https://wiserim.github.io/phaser-raycaster/
     scene: [
       {
@@ -68,6 +60,17 @@ const config: Types.Core.GameConfig = {
         plugin: PhaserRaycaster,
         mapping: 'raycasterPlugin'
       },
+      {
+        key: 'rexHorrifiPipeline',
+        plugin: HorrifiPipelinePlugin,
+        start: true
+      }
+      ,
+      {
+        key: 'rexVirtualJoystick',
+        plugin: VirtualJoystickPlugin,
+        start: true
+      }
       // {
       //     key: 'rexBoard',
       //     plugin: BoardPlugin,
